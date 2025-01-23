@@ -7,6 +7,20 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
 
+        <Button Grid.Column="0" Grid.Row="0" Name="btnEditScriptLauncher">Edit Script Launcher Settings</Button>
+        <Button Grid.Column="0" Grid.Row="1" Name="btnSetupTaskMonitor">Setup Task Monitor</Button>
+        <Button Grid.Column="0" Grid.Row="2" Name="btnSetupScripts">Setup Automation Scripts</Button>
+        
     </Grid>
 </Window>
