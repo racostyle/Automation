@@ -1,6 +1,7 @@
 ﻿using EasyScriptLauncher.Utils;
 using System;
 using System.IO;
+using System.Threading;
 
 namespace EasyScriptLauncher
 {
@@ -33,6 +34,13 @@ namespace EasyScriptLauncher
                 {
                     info.NoScriptsFound(config.ScriptsFolder, config.SearchForScriptsRecursively);
                     Environment.Exit(1);
+                }
+
+                if (config.DelayInMils > 0)
+                {
+                    Console.WriteLine("Waiting for environment to set up!");
+                    Console.WriteLine($"Sleeping for {config.DelayInMils/1000} seconds...");
+                    Thread.Sleep(config.DelayInMils);
                 }
 
                 foreach (var script in scripts)

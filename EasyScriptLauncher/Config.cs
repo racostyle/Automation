@@ -8,5 +8,6 @@
         public bool HideWindow { get; set; }
         public bool TestBehaviour { get; set; }
         public bool LoadProfile { get; set; }
+        public int DelayInMils { get; set; }
     }
 }

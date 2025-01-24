@@ -107,6 +107,11 @@ foreach ($configFile in $configFiles) {
     $programsList += $programInfo
 }
 
+Write-Host "--------------------------------------------------------------------------------------------" 
+
+Log-Message "About to sleep for 30 seconds to ensure environment is set"
+Start-Sleep -Seconds 30
+Log-Message "Resumed after sleeping for 30 seconds"
 
 #Minimize the window
 Add-Type @"
@@ -138,8 +143,6 @@ $runspacePool = [runspacefactory]::CreateRunspacePool(1, [Environment]::Processo
 $runspacePool.Open()
 # An array to store the runspaces
 $runspaces = @()
-
-Start-Sleep -Seconds 30 #To ensure environment is set
 
 #Execution
 while ($true) {
@@ -185,7 +188,7 @@ while ($true) {
                     Start-Sleep -Seconds 5
                     $delay = $delay + 5
                 }
-                
+
                 if (IsProcess $name) {
                     Log-Message "${name} started successfully." "INFO"
                 }
