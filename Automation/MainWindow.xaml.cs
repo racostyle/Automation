@@ -1,6 +1,9 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using Automation.ConfigurationAdapter;
+using System.IO;
+using System.Text.Json;
+using System.Windows;
 using System.Windows.Media;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Automation
 {
@@ -12,18 +15,31 @@ namespace Automation
         public MainWindow()
         {
             InitializeComponent();
+            this.Loaded += MainWindow_Loaded; ;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            Task.Delay(100);
 
             var handlers = new IVisualHandler[]
-            {   
-                new Handler_TextBox()
+            {
+                 new Handler_TextBox()
             };
 
             var handler = new VisualTreeAdapter(handlers);
 
-            handler.PackVisualData(this);
+            //var config = handler.Pack(this);
+
+            //var text = JsonSerializer.Serialize(config);
+            //File.WriteAllText("appsettings.json", text);
+
+            var json = File.ReadAllText("appsettings.json");
+            var config = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+
+            handler.Unpack(this, config);
+
         }
-
-
     }
 
     public class VisualTreeAdapter
@@ -35,52 +51,71 @@ namespace Automation
             _visualHandlers = visualHandlers;
         }
 
-        public void PackVisualData(Visual visualTree)
+        public Dictionary<string, string> Pack(Visual visualTree)
         {
+            var visuals = FetchAllVisuals(visualTree);
+
+            var config = new Dictionary<string, string>();
+
+            foreach (var visual in visuals)
+            {
+                foreach (var handler in _visualHandlers)
+                {
+                    if (handler.DoesMatchTo(visual))
+                        config.Add(handler.GetVisualNameWithoutPrefix(visual), handler.GetVisualValue(visual));
+                }
+            }
+
+            return config;
+        }
+
+        public Dictionary<string, string> Unpack(Visual visualTree, Dictionary<string,string> config)
+        {
+            if (config == null)
+                return new Dictionary<string, string>();
+
+            var recognized = GetAllRecognizedVisuals(visualTree);
+
+            foreach (var visual in recognized)
+            {
+                foreach (var handler in _visualHandlers)
+                {
+                    var name = handler.GetVisualNameWithoutPrefix(visual);
+                    if (handler.DoesMatchTo(visual) && config.ContainsKey(name))
+                    {
+                        handler.AssignValueToVisual(visual, config[name]);
+                    }
+                }
+            }
+
+            return config;
+        }
+
+        private List<Visual> GetAllRecognizedVisuals(Visual visualTree)
+        {
+            var visuals = FetchAllVisuals(visualTree);
+            var recognized = new List<Visual>();
+
+            foreach (var visual in visuals)
+            {
+                if (_visualHandlers.Any(x => x.DoesMatchTo(visual)))
+                    recognized.Add(visual);
+            }
+            return recognized;
+        }
+
+        public List<Visual> FetchAllVisuals(Visual visualTree)
+        {
+            var visuals = new List<Visual>();
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(visualTree); i++)
             {
                 Visual childVisual = (Visual)VisualTreeHelper.GetChild(visualTree, i);
-
-                // Process control
-                ScrapeControlData(childVisual);
-
+                visuals.Add(childVisual);
                 // Recurse into children
-                PackVisualData(childVisual);
+                visuals.AddRange(FetchAllVisuals(childVisual));
             }
+            return visuals;
         }
 
-        private void ScrapeControlData(Visual childVisual)
-        {
-            if (childVisual is TextBox)
-            {
-
-            }
-        }
-    }
-
-    public class Handler_TextBox : IVisualHandler
-    {
-        public void AssignValueToVisual(Visual visual, string value)
-        {
-            if (DoesMatchTo(visual))
-            {
-                ((TextBox)visual).Text = value;
-            } 
-        }
-
-        public bool DoesMatchTo(Visual visual)
-        {
-            return visual is TextBox;
-        }
-
-        public string GetVisualNameWithoutPrefix(Visual visual)
-        {
-            return DoesMatchTo(visual) ? new string(((TextBox)visual).Name.SkipWhile(x => char.IsLower(x)).ToArray()) : "";
-        }
-
-        public string GetVisualValue(Visual visual)
-        {
-            return DoesMatchTo(visual) ? ((TextBox)visual).Text : "";
-        }
     }
 }
