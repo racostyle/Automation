@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Automation
@@ -35,6 +36,9 @@ namespace Automation
 
             var adapter = BuildHandler();
 
+            if (!File.Exists("appsettings.json"))
+                return;
+
             var json = File.ReadAllText("appsettings.json");
             var config = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
 
@@ -46,7 +50,8 @@ namespace Automation
         {
             var handlers = new IVisualHandler[]
             {
-                 new Handler_TextBox()
+                 new Handler_TextBox(),
+                 new Handler_CheckBox()
             };
 
             return new VisualTreeAdapter(handlers);
