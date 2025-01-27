@@ -1,7 +1,7 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace Automation
+namespace Automation.ConfigurationAdapter
 {
     public interface IVisualHandler
     {

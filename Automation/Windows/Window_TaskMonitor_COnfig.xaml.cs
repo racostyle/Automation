@@ -1,4 +1,5 @@
 ﻿using Automation.ConfigurationAdapter;
+using Automation.Utils;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -19,12 +20,13 @@ namespace Automation
             InitializeComponent();
             _visualTreeAdapter = visualTreeAdapter;
             _baseScriptsLocation = baseScriptsLocation;
+            _configLocation = configLocation;
+
             tbCheckInterval.Text = "60";
 
-            if (string.IsNullOrEmpty(configLocation))  
+            if (string.IsNullOrEmpty(_configLocation))  
                 return;
 
-            _configLocation = configLocation;
             this.Loaded += Window_TaskMonitor_Config_LoadedAsync;
         }
 

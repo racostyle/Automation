@@ -1,9 +1,8 @@
 ﻿using Automation.ConfigurationAdapter;
-using Microsoft.Windows.Themes;
+using Automation.Utils;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace Automation
 {
@@ -12,30 +11,23 @@ namespace Automation
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly LoadedConfigsComboBoxWrapper _configsWrapper;
+        private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
         private readonly VisualTreeAdapter _visualTreeAdapter;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            _configsWrapper = new LoadedConfigsComboBoxWrapper(cbbConfigs);
-            _visualTreeAdapter = BuildHandler();
+            _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
+            
+            _visualTreeAdapter = new VisualTreeAdapterBuilder()
+                .Configure_HandleTextBox()
+                .Configure_HandleCheckBox()
+                .Build();
 
             this.tbScriptsLocation.TextChanged += OnTbScriptsLocation_TextChanged;
             this.Loaded += MainWindow_Loaded;
             this.Closed += MainWindow_Closed;
-        }
-
-        private VisualTreeAdapter BuildHandler()
-        {
-            var handlers = new IVisualHandler[]
-            {
-                 new Handler_TextBox(),
-                 new Handler_CheckBox()
-            };
-
-            return new VisualTreeAdapter(handlers);
         }
 
         #region CLOSED & LOADED HANDLERS
@@ -103,8 +95,6 @@ namespace Automation
 
         }
 
-        #endregion
-
         private void OnBtnNewAutomationScript_Click(object sender, RoutedEventArgs e)
         {
             Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_visualTreeAdapter, tbScriptsLocation.Text, string.Empty);
@@ -112,37 +102,9 @@ namespace Automation
 
             _configsWrapper.Load(tbScriptsLocation.Text);
         }
-    }
 
-    internal class LoadedConfigsComboBoxWrapper
-    {
-        private readonly ComboBox _comboBox;
+        #endregion
 
-        public LoadedConfigsComboBoxWrapper(ComboBox comboBox)
-        {
-            _comboBox = comboBox;
-        }
 
-        internal void Load(string location)
-        {
-            _comboBox.Items.Clear();
-
-            var config = Directory.GetFiles(location, "*_Config.json");
-
-            if (!config.Any())
-                return;
-
-            foreach (var cfg in config)
-            {
-                _comboBox.Items.Add(cfg);
-            }
-        }
-
-        internal string GetValue()
-        {
-            if (_comboBox.Items.Count == 0)
-                return string.Empty;
-            return _comboBox.Text;
-        }
     }
 }
