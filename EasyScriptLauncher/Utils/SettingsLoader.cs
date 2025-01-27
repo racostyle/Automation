@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ConfigLib;
+using System;
 using System.IO;
 using System.Text.Json;
 
@@ -32,6 +33,7 @@ namespace EasyScriptLauncher.Utils
                 SearchForScriptsRecursively = false,
                 TestBehaviour = false,
                 LoadProfile = false,
+                DelayInMils = 0
             };
             var json = JsonSerializer.Serialize(config);
             File.WriteAllText(settingsFile, json);

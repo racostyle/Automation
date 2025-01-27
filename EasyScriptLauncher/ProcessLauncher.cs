@@ -1,4 +1,5 @@
-﻿using EasyScriptLauncher.Utils;
+﻿using ConfigLib;
+using EasyScriptLauncher.Utils;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;

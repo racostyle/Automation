@@ -1,4 +1,4 @@
-﻿namespace EasyScriptLauncher
+﻿namespace ConfigLib
 {
     public class Config
     {

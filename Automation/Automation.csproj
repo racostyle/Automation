@@ -13,7 +13,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ConfigLib\ConfigLib.csproj" />
     <ProjectReference Include="..\EasyScriptLauncher\EasyScriptLauncher.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TaskMonitor\ExampleApp_Config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TaskMonitor\Readme.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TaskMonitor\TaskMonitorV3.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
