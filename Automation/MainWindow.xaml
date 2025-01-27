@@ -6,7 +6,9 @@
         xmlns:local="clr-namespace:Automation"
         mc:Ignorable="d"
         Title="MainWindow" Height="200" Width="800"
-        Background="Black">
+        Background="Black"
+        Loaded="Window_Loaded"
+        Closed="Window_Closed">
 
     <Window.Resources>
         <Style TargetType="TextBox">
@@ -45,7 +47,7 @@
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
 
-        <TextBox Name="tbScriptsLocation" Grid.ColumnSpan="3"/>
+        <TextBox Name="tbScriptsLocation" Grid.ColumnSpan="3" TextChanged="OnTbScriptsLocation_TextChanged"/>
         <Button Grid.Column="3" Grid.Row="0" Name="btnSearchScriptLocation" Click="OnBtnSearchScriptLocation_Click">Search</Button>
         <Button Grid.Column="0" Grid.Row="2" Name="btnEditScriptLauncher">Edit Script Launcher Settings</Button>
         <Button Grid.Column="0" Grid.Row="3" Name="btnSetupTaskMonitor">Setup Task Monitor</Button>

@@ -19,30 +19,16 @@ namespace Automation
             InitializeComponent();
 
             _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
-            
+
             _visualTreeAdapter = new VisualTreeAdapterBuilder()
                 .Configure_HandleTextBox()
                 .Configure_HandleCheckBox()
                 .Build();
-
-            this.tbScriptsLocation.TextChanged += OnTbScriptsLocation_TextChanged;
-            this.Loaded += MainWindow_Loaded;
-            this.Closed += MainWindow_Closed;
         }
 
         #region CLOSED & LOADED HANDLERS
-        private void MainWindow_Closed(object? sender, EventArgs e)
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var config = _visualTreeAdapter.Pack(this);
-
-            var text = JsonSerializer.Serialize(config);
-            File.WriteAllText("appsettings.json", text);
-        }
-
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            Task.Delay(100);
-
             if (!File.Exists("appsettings.json"))
                 return;
 
@@ -52,7 +38,14 @@ namespace Automation
             _visualTreeAdapter.Unpack(this, config);
 
             InitAfterLoaded();
+        }
 
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            var config = _visualTreeAdapter.Pack(this);
+
+            var text = JsonSerializer.Serialize(config);
+            File.WriteAllText("appsettings.json", text);
         }
 
         private void InitAfterLoaded()
@@ -103,8 +96,9 @@ namespace Automation
             _configsWrapper.Load(tbScriptsLocation.Text);
         }
 
+
         #endregion
 
-
+       
     }
 }
