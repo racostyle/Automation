@@ -10,7 +10,8 @@
         Loaded="Window_Loaded"
         Closed="Window_Closed"
         MinHeight="275"
-        MinWidth="450">
+        MinWidth="450"
+        WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <Style TargetType="TextBox">

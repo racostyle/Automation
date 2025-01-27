@@ -118,7 +118,11 @@ namespace Automation
 
         private void OnBtnSetupTaskMonitor_Click(object sender, RoutedEventArgs e)
         {
-
+            var result = _deployer.SetupTaskMonitor(tbScriptsLocation.Text);
+            if (result)
+                btnSetupTaskMonitor.Background = Brushes.DarkGreen;
+            else
+                btnSetupTaskMonitor.Background = Brushes.DarkRed;
         }
 
         #endregion
@@ -194,22 +198,43 @@ namespace Automation
 
         public bool CheckTaskMonitor(string scriptsLocation)
         {
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "TaskMonitor");
-            var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").FirstOrDefault());
+            var programName = "TaskMonitor";
+            var basePath = Path.Combine(Directory.GetCurrentDirectory(), programName);
+            var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{programName}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
 
             if (string.IsNullOrEmpty(file))
-                throw new Exception("FatalError: TaskMonitor could not be found. Rebuild or download the app again!");
+                throw new Exception($"FatalError: {programName} could not be found. Rebuild or download the app again!");
 
-            var jebemtigovna = Path.Combine(scriptsLocation, Path.GetFileName(file));
-            if (File.Exists(jebemtigovna))
+            var path = Path.Combine(scriptsLocation, Path.GetFileName(file));
+            if (File.Exists(path))
                 return true;
 
             return false;
         }
 
-        public void SetupTaskMonitor(string scriptsLocation)
+        public bool SetupTaskMonitor(string scriptsLocation)
         {
+            var programName = "TaskMonitor";
+            var basePath = Path.Combine(Directory.GetCurrentDirectory(), programName);
+            var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{programName}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
 
+            if (string.IsNullOrEmpty(file))
+                throw new Exception($"FatalError: {programName} could not be found. Rebuild or download the app again!");
+
+            var path = Path.Combine(scriptsLocation, file);
+            if (File.Exists(path))
+                return true;
+
+            try
+            {
+                File.Copy(Path.Combine(Path.Combine(basePath, file)), path);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

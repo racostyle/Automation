@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Automation"
         mc:Ignorable="d"
-        Title="Task Monitor Configuration Editor" Height="250" Width="600" Background="Black"
+        Title="TaskMonitor Executables Configuration Editor" Height="250" Width="600" Background="Black"
         MinWidth="600"
-        MinHeight="250">
+        MinHeight="250"
+        WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
