@@ -16,5 +16,17 @@ namespace Automation
 
             return string.Empty;
         }
+
+        internal string ShowFileDialog_ReturnPath()
+        {
+            var folderDialog = new VistaOpenFileDialog();
+
+            var dialogResult = folderDialog.ShowDialog();
+
+            if (dialogResult == true)
+                return folderDialog.FileName;
+
+            return string.Empty;
+        }
     }
 }

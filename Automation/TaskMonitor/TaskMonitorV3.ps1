@@ -73,7 +73,16 @@ foreach ($configFile in $configFiles) {
     $config = Get-Content $configPath -Force | ConvertFrom-Json
     $BaseFolder = $config.BaseFolder
     $ExecutableName = $config.ExecutableName
-    $CheckInterval = $config.CheckInterval
+    
+    $interval = 0 
+    $CheckIntervalRaw = $config.CheckInterval
+    $success = [int]::TryParse($CheckIntervalRaw, [ref]$interval)
+    if ($success) {
+        $CheckInterval = $interval
+    } else {
+        $CheckInterval = 60
+    }
+    
     $Arguments = $config.Arguments
 
     if (-not (Test-Path -Path $BaseFolder -PathType Container)) {

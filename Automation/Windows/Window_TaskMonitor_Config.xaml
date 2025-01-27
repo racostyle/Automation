@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Automation"
         mc:Ignorable="d"
-        Title="Task Monitor Configuration Editor" Height="250" Width="500" Background="Black">
+        Title="Task Monitor Configuration Editor" Height="250" Width="600" Background="Black">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1.2*"/>
+            <ColumnDefinition Width="1.2*"/>
             <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -28,6 +28,7 @@
                 <Setter Property="Margin" Value="5"/>
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="Background" Value="#1A1A1A"/>
+                <Setter Property="Text" Value=""/>
             </Style>
             <Style TargetType="Label">
                 <Setter Property="VerticalAlignment" Value="Center"/>
@@ -39,20 +40,26 @@
             </Style>
         </Grid.Resources>
 
-        <TextBox Name="tbLocationSearch" Grid.Row="0" Grid.Column="0" Text="null" Grid.ColumnSpan="3"/>
-        <Button Name="tbSearchForLocation" Content="Search" Grid.Row="0" Grid.Column="3" Grid.ColumnSpan="2" Background="LightYellow"/>
+        <Button 
+            Name="btnSearchForLocation" 
+            Content="Search For Executable" 
+            Grid.Row="2" 
+            Grid.Column="1" 
+            Grid.ColumnSpan="2" 
+            Background="LightYellow"
+            Click="btnSearchForLocation_Click"/>
 
-        <Label Grid.Row="1" Grid.Column="0" Content="BaseFolder: " HorizontalAlignment="Right"/>
-        <Label Grid.Row="2" Grid.Column="0" Content="ExecutableName: " HorizontalAlignment="Right"/>
+        <Label Grid.Row="0" Grid.Column="0" Content="BaseFolder: " HorizontalAlignment="Right"/>
+        <Label Grid.Row="1" Grid.Column="0" Content="ExecutableName: " HorizontalAlignment="Right"/>
         <Label Grid.Row="3" Grid.Column="0" Content="CheckInterval: " HorizontalAlignment="Right"/>
         <Label Grid.Row="4" Grid.Column="0" Content="Arguments: " HorizontalAlignment="Right"/>
 
-        <TextBox Name="tbBaseFolder" Grid.Row="1" Grid.Column="1" Text="null" Grid.ColumnSpan="3"/>
-        <TextBox Name="tbExecutableName" Grid.Row="2" Grid.Column="1" Text="null" Grid.ColumnSpan="3"/>
-        <TextBox Name="tbCheckInterval" Grid.Row="3" Grid.Column="1" Text="null" Grid.ColumnSpan="3"/>
-        <TextBox Name="tbArguments" Grid.Row="4" Grid.Column="1" Text="null" Grid.ColumnSpan="3"/>
+        <TextBox Name="tbBaseFolder" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"/>
+        <TextBox Name="tbExecutableName" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3"/>
+        <TextBox Name="tbCheckInterval" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3"/>
+        <TextBox Name="tbArguments" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"/>
 
-        <Button Name="tbCancel" Content="Cancel" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Background="IndianRed"/>
-        <Button Name="tbConfirmAndSave" Content="Confirm" Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Background="LightGreen"/>
+        <Button Name="tbCancel" Content="Cancel" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Background="IndianRed" Click="tbCancel_Click"/>
+        <Button Name="tbConfirmAndSave" Content="Confirm" Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Background="LightGreen" Click="tbConfirmAndSave_Click"/>
     </Grid>
 </Window>
