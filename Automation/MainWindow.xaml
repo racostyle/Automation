@@ -5,9 +5,40 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Automation"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="300" Width="800"
+        Background="Black">
+
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#1A1A1A"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="#141414"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="#1A1A1A"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#1A1A1A"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+    </Window.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
@@ -16,13 +47,17 @@
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
 
-        <Button Grid.Column="0" Grid.Row="0" Name="btnEditScriptLauncher">Edit Script Launcher Settings</Button>
-        <Button Grid.Column="0" Grid.Row="1" Name="btnSetupTaskMonitor">Setup Task Monitor</Button>
-        <Button Grid.Column="0" Grid.Row="2" Name="btnSetupScripts">Setup Automation Scripts</Button>
-        <TextBox Grid.Column="1" Grid.Row="0" Name="tbSomeInfo" TextWrapping="Wrap" Text="NekiNeki 123" VerticalAlignment="Center" Width="120"/>
-        <CheckBox Grid.Column="1" Grid.Row="1" Name="chbPrimer" Content="Primer" HorizontalAlignment="Left" Margin="73,0,0,0" VerticalAlignment="Center"/>
+        <TextBox Name="tbScriptsLocation" Grid.ColumnSpan="3"/>
+        <Button Grid.Column="3" Grid.Row="0" Name="btnSearchScriptLocation" Click="btnSearchScriptLocation_Click">Search</Button>
+        <Button Grid.Column="0" Grid.Row="2" Name="btnEditScriptLauncher">Edit Script Launcher Settings</Button>
+        <Button Grid.Column="0" Grid.Row="3" Name="btnSetupTaskMonitor">Setup Task Monitor</Button>
+        <Button Grid.Column="0" Grid.Row="4" Name="btnEditAutomationScript">Edit Automation Script</Button>
+        <Button Grid.Column="3" Grid.Row="4" Name="btnNewAutomationScript">New Automation Script</Button>
+        <ComboBox Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="2"/>
 
     </Grid>
 </Window>

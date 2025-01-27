@@ -2,8 +2,6 @@
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Automation
 {
@@ -44,6 +42,14 @@ namespace Automation
 
             adapter.Unpack(this, config);
 
+            InitAfterLoaded();
+
+        }
+
+        private void InitAfterLoaded()
+        {
+            if (string.IsNullOrEmpty(tbScriptsLocation.Text))
+                tbScriptsLocation.Text = "C:\\Delivery\\Automation\\Scripts";
         }
 
         private VisualTreeAdapter BuildHandler()
@@ -57,5 +63,14 @@ namespace Automation
             return new VisualTreeAdapter(handlers);
         }
         #endregion
+
+        private void btnSearchScriptLocation_Click(object sender, RoutedEventArgs e)
+        {
+            var location = new FolderDialogWrapper().ShowFolderDialog_ReturnPath();
+
+            if (!string.IsNullOrEmpty(location))
+                tbScriptsLocation.Text = location;
+
+        }
     }
 }
