@@ -49,16 +49,25 @@ namespace Automation.Utils
             return doesShortcutExist;
         }
 
+        public async Task<bool> SetupEasyScriptLauncher(string location, string programName, string scriptsLocation)
+        {
+            var commonStartup = GetCommonStartupFolderPathManual();
+            if (!File.Exists(Path.Combine(commonStartup, $"{programName}.lnk")))
+            {
+                _shell.CreateShortcut(location, commonStartup, programName);
+                await Task.Delay(1000);
+            }
+
+            var result = await CheckEasyScriptLauncher(scriptsLocation);
+
+            return true;
+        }
+
         public static string GetCommonStartupFolderPathManual()
         {
             var programData = Environment.GetEnvironmentVariable("ProgramData");
             var commonStartupPath = Path.Combine(programData, @"Microsoft\Windows\Start Menu\Programs\Startup");
             return commonStartupPath;
-        }
-
-        public void SetupEasyScriptLauncher(string location)
-        {
-
         }
 
         public bool CheckTaskMonitor(string scriptsLocation)

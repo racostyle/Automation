@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using System.Text;
 
 namespace Automation.Utils
@@ -16,25 +17,48 @@ namespace Automation.Utils
             Process process = Process.Start(startInfo);
             return process;
         }
-        public Process Execute2(string command, string workingDirectory, bool visible = true, bool asAdmin = true)
+
+        public void CreateShortcut(string target, string shortcutDestination, string programName)
         {
-            var finalCommand = new StringBuilder();
-            finalCommand.Append(command);
-            finalCommand.Append(!visible ? "-WindowStyle Hidden" : string.Empty);
-            finalCommand.Append(!asAdmin ? "-Verb RunAs" : string.Empty);
+            var command = BuildShortcutScript(target, shortcutDestination, programName);
+            Execute(command, Directory.GetCurrentDirectory(), true, true);
+        }
 
-
+        public Process Execute(string command, string workingDirectory, bool visible = true, bool asAdmin = true)
+        {
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{finalCommand.ToString()}\"",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{command}\"",
                 UseShellExecute = visible,
                 CreateNoWindow = !visible,
                 WorkingDirectory = workingDirectory,
+                Verb = asAdmin ? "RunAs" : string.Empty
             };
 
             Process process = Process.Start(startInfo);
             return process;
+        }
+
+        private string BuildShortcutScript(string target, string shortcutDestination, string programName)
+        {
+            var shortcutPath = Path.Combine(shortcutDestination, $"{programName}.lnk");
+            var targetPath = Path.Combine(target, $"{programName}.exe");
+
+            // Escaping quotes for use in PowerShell
+            shortcutPath = shortcutPath.Replace(@"\", @"\\");  // Ensure the backslashes are escaped in PowerShell string
+            targetPath = targetPath.Replace(@"\", @"\\");
+
+            //enclose path in double quotes
+            return @$"
+                $shortcutPath = \""{shortcutPath}\""  
+                $targetPath = \""{targetPath}\""     
+                $WScriptShell = New-Object -ComObject WScript.Shell
+                $Shortcut = $WScriptShell.CreateShortcut($shortcutPath)
+                
+                $Shortcut.TargetPath = $targetPath
+                $Shortcut.WorkingDirectory = [System.IO.Path]::GetDirectoryName($targetPath)
+                $Shortcut.Save()";
         }
     }
 }

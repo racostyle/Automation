@@ -119,7 +119,7 @@ foreach ($configFile in $configFiles) {
 Write-Host "--------------------------------------------------------------------------------------------" 
 
 Log-Message "About to sleep for 30 seconds to ensure environment is set"
-Start-Sleep -Seconds 30
+Start-Sleep -Seconds 30 #Delay before loop
 Log-Message "Resumed after sleeping for 30 seconds"
 
 #Minimize the window
