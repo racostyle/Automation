@@ -3,6 +3,7 @@ using Automation.Utils;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace Automation
@@ -18,6 +19,12 @@ namespace Automation
 
         public MainWindow()
         {
+            if (!Environment.IsPrivilegedProcess)
+            {
+                MessageBox.Show("Start this app as admin!");
+                Environment.Exit(0);
+            }
+
             InitializeComponent();
 
             _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
@@ -28,6 +35,8 @@ namespace Automation
                 .Build();
 
             _deployer = new Deployer(new SimpleShellExecutor());
+
+            
         }
 
         #region CLOSED & LOADED HANDLERS
@@ -61,18 +70,13 @@ namespace Automation
             }
 
             var result = await _deployer.CheckEasyScriptLauncher(tbScriptsLocation.Text);
-            if (result)
-                btnSetupScripLauncher.Background = Brushes.DarkGreen;
-            else
-                btnSetupScripLauncher.Background = Brushes.DarkRed;
+            ColorButton(result, btnSetupScripLauncher);
 
             result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text);
-            if (result)
-                btnSetupTaskMonitor.Background = Brushes.DarkGreen;
-            else
-                btnSetupTaskMonitor.Background = Brushes.DarkRed;
-        }
+            ColorButton(result, btnSetupTaskMonitor);
 
+            cbhDoUpdate.IsChecked = false;
+        }
         #endregion
 
         #region AUTO HANDLERS
@@ -115,12 +119,8 @@ namespace Automation
         private async void OnBtnSetupScripLauncher_Click(object sender, RoutedEventArgs e)
         {
             ShowOverlay();
-            var scriptLauncher = "EasyScriptLauncher";
-            var result = await _deployer.SetupEasyScriptLauncher(Directory.GetCurrentDirectory(), scriptLauncher, tbScriptsLocation.Text);
-            if (result)
-                btnSetupScripLauncher.Background = Brushes.DarkGreen;
-            else
-                btnSetupScripLauncher.Background = Brushes.DarkRed;
+            var result = await _deployer.SetupEasyScriptLauncher(tbScriptsLocation.Text);
+            ColorButton(result, btnSetupScripLauncher);
             HideOverlay();
         }
 
@@ -131,13 +131,23 @@ namespace Automation
                 return;
 
             var result = _deployer.SetupTaskMonitor(tbScriptsLocation.Text);
-            if (result)
-                btnSetupTaskMonitor.Background = Brushes.DarkGreen;
-            else
-                btnSetupTaskMonitor.Background = Brushes.DarkRed;
+            ColorButton(result, btnSetupTaskMonitor);
             HideOverlay();
         }
 
+        
+        private async void OnBtnUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbhDoUpdate.IsChecked == false)
+                return;
+
+            ShowOverlay();
+            var result = await _deployer.UpdateEasyScriptLauncher(tbScriptsLocation.Text);
+            ColorButton(result, btnSetupTaskMonitor);
+            ColorButton(result, btnSetupScripLauncher);
+            cbhDoUpdate.IsChecked = false;
+            HideOverlay();
+        }
         #endregion
 
         #region AUXILIARY
@@ -149,6 +159,14 @@ namespace Automation
                 return false;
             }
             return true;
+        }
+
+        private void ColorButton(bool result, Button button)
+        {
+            if (result)
+                button.Background = Brushes.DarkGreen;
+            else
+                button.Background = Brushes.DarkRed;
         }
 
         private void ShowOverlay()

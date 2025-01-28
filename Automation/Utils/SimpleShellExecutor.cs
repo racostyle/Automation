@@ -10,6 +10,8 @@ namespace Automation.Utils
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = fileName,
+                UseShellExecute = false,
+                CreateNoWindow = true,
                 Verb = "RunAs",
             };
 

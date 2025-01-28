@@ -9,20 +9,23 @@ namespace Automation.Utils
     {
         private readonly SimpleShellExecutor _shell;
 
+        private readonly string EASY_SCRIPT_LAUNCHER = "EasyScriptLauncher";
+        private readonly string TASK_MONITOR = "TaskMonitor";
+
         public Deployer(SimpleShellExecutor shell)
         {
             _shell = shell;
         }
 
+        #region EASY SCRIPT LAUNCHER
         public async Task<bool> CheckEasyScriptLauncher(string scriptsLocation)
         {
             //Check Settings
-            var name = "EasyScriptLauncher";
-            var settings = $"{name}_Settings.json";
+            var settings = $"{EASY_SCRIPT_LAUNCHER}_Settings.json";
 
             if (!File.Exists(settings))
             {
-                var process = _shell.ExecuteExe(Path.Combine(Directory.GetCurrentDirectory(), $"{name}.exe"));
+                var process = _shell.ExecuteExe(Path.Combine(Directory.GetCurrentDirectory(), $"{EASY_SCRIPT_LAUNCHER}.exe"));
                 await Task.Delay(2000);
                 process?.Kill();
             }
@@ -44,17 +47,17 @@ namespace Automation.Utils
 
             //Check for Shortcut
             var startupPath = GetCommonStartupFolderPathManual();
-            var doesShortcutExist = Directory.GetFiles(startupPath, "*").Any(x => x.Contains(name, StringComparison.OrdinalIgnoreCase));
+            var doesShortcutExist = Directory.GetFiles(startupPath, "*").Any(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase));
 
             return doesShortcutExist;
         }
 
-        public async Task<bool> SetupEasyScriptLauncher(string location, string programName, string scriptsLocation)
+        public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation)
         {
             var commonStartup = GetCommonStartupFolderPathManual();
-            if (!File.Exists(Path.Combine(commonStartup, $"{programName}.lnk")))
+            if (!File.Exists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
             {
-                _shell.CreateShortcut(location, commonStartup, programName);
+                _shell.CreateShortcut(Directory.GetCurrentDirectory(), commonStartup, EASY_SCRIPT_LAUNCHER);
                 await Task.Delay(1000);
             }
 
@@ -63,6 +66,35 @@ namespace Automation.Utils
             return true;
         }
 
+        public async Task<bool> UpdateEasyScriptLauncher(string scriptsLocation)
+        {
+            var settings = Path.Combine(Directory.GetCurrentDirectory(), $"{EASY_SCRIPT_LAUNCHER}_Settings.json");
+            if (File.Exists(settings))
+                File.Delete(settings);
+
+            var startupPath = GetCommonStartupFolderPathManual();
+            var shortcuts = Directory.GetFiles(startupPath, "*").Where(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (shortcuts.Any())
+            {
+                foreach (var item in shortcuts)
+                    File.Delete(item);
+            }
+
+            var monitors = Directory.GetFiles(scriptsLocation, "*").Where(x => x.Contains(TASK_MONITOR, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (monitors.Any())
+            {
+                foreach (var item in monitors)
+                    File.Delete(item);
+            }
+
+            var resultMonitor = SetupTaskMonitor(scriptsLocation);
+            var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation);
+
+            return resultlauncher == resultMonitor;
+        }
+        #endregion
+
+        #region TASK MONITOR
         public static string GetCommonStartupFolderPathManual()
         {
             var programData = Environment.GetEnvironmentVariable("ProgramData");
@@ -72,12 +104,11 @@ namespace Automation.Utils
 
         public bool CheckTaskMonitor(string scriptsLocation)
         {
-            var programName = "TaskMonitor";
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), programName);
-            var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{programName}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
+            var basePath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);
+            var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
 
             if (string.IsNullOrEmpty(file))
-                throw new Exception($"FatalError: {programName} could not be found. Rebuild or download the app again!");
+                throw new Exception($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
 
             var path = Path.Combine(scriptsLocation, Path.GetFileName(file));
             if (File.Exists(path))
@@ -110,5 +141,6 @@ namespace Automation.Utils
 
             return true;
         }
+        #endregion
     }
 }
