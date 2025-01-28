@@ -43,7 +43,10 @@ namespace Automation
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             if (!File.Exists("appsettings.json"))
+            {
+                HideOverlay();
                 return;
+            }
 
             var json = File.ReadAllText("appsettings.json");
             var config = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
@@ -51,6 +54,7 @@ namespace Automation
             _visualTreeAdapter.Unpack(this, config);
 
             await InitAfterLoadedAsync();
+            HideOverlay();
         }
 
         private void Window_Closed(object sender, EventArgs e)
