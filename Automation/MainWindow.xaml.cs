@@ -1,7 +1,6 @@
 ﻿using Automation.ConfigurationAdapter;
 using Automation.Utils;
 using System.IO;
-using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
@@ -115,16 +114,19 @@ namespace Automation
 
         private async void OnBtnSetupScripLauncher_Click(object sender, RoutedEventArgs e)
         {
+            ShowOverlay();
             var scriptLauncher = "EasyScriptLauncher";
             var result = await _deployer.SetupEasyScriptLauncher(Directory.GetCurrentDirectory(), scriptLauncher, tbScriptsLocation.Text);
             if (result)
                 btnSetupScripLauncher.Background = Brushes.DarkGreen;
             else
                 btnSetupScripLauncher.Background = Brushes.DarkRed;
+            HideOverlay();
         }
 
         private void OnBtnSetupTaskMonitor_Click(object sender, RoutedEventArgs e)
         {
+            ShowOverlay();
             if (!BaseScriptLocationSafetyCheck())
                 return;
 
@@ -133,6 +135,7 @@ namespace Automation
                 btnSetupTaskMonitor.Background = Brushes.DarkGreen;
             else
                 btnSetupTaskMonitor.Background = Brushes.DarkRed;
+            HideOverlay();
         }
 
         #endregion
@@ -147,57 +150,16 @@ namespace Automation
             }
             return true;
         }
+
+        private void ShowOverlay()
+        {
+            recOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void HideOverlay()
+        {
+            recOverlay.Visibility = Visibility.Hidden;
+        }
         #endregion
-    }
-
-    public class ScriptEditor
-    {
-        private readonly string _filePath;
-        private string _tempFile = Path.GetTempFileName();
-
-        public ScriptEditor(string filePath)
-        {
-            _filePath = filePath;
-        }
-
-        public void EditDelayTime(int newDelayInSeconds)
-        {
-            try
-            {
-                // Read the encoding of the original file
-                Encoding encoding = GetEncoding(_filePath);
-
-                using (var sr = new StreamReader(_filePath, encoding))
-                using (var sw = new StreamWriter(_tempFile, false, encoding))
-                {
-                    string line;
-
-                    while ((line = sr.ReadLine()) != null)
-                    {
-                        if (line.Trim().Contains("#Delay before loop", StringComparison.OrdinalIgnoreCase))
-                        {
-                            line = $"Start-Sleep -Seconds {newDelayInSeconds} #Delay before loop";
-                        }
-                        sw.WriteLine(line);
-                    }
-                }
-
-                // Replace the original file with the modified file
-                File.Delete(_filePath);
-                File.Move(_tempFile, _filePath);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("An error occurred: " + ex.Message);
-            }
-        }
-        private Encoding GetEncoding(string filePath)
-        {
-            using (var reader = new StreamReader(filePath, true))
-            {
-                reader.Peek(); // you need to do an operation to force the StreamReader to detect the encoding
-                return reader.CurrentEncoding;
-            }
-        }
     }
 }

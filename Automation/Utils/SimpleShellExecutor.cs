@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 namespace Automation.Utils
 {
@@ -21,7 +20,7 @@ namespace Automation.Utils
         public void CreateShortcut(string target, string shortcutDestination, string programName)
         {
             var command = BuildShortcutScript(target, shortcutDestination, programName);
-            Execute(command, Directory.GetCurrentDirectory(), true, true);
+            Execute(command, Directory.GetCurrentDirectory(), false, true);
         }
 
         public Process Execute(string command, string workingDirectory, bool visible = true, bool asAdmin = true)

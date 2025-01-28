@@ -67,5 +67,6 @@
         <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap">If buttons are Green checks were ok an nothing is needed. If red click the corresponding button and the program will fix it for you.</TextBlock>
         <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap">This tool is for easier setup of .exe programs we want to monitor. Each program needs its own script in default Scripts location (was autofilled).</TextBlock>
 
+        <Rectangle Name="recOverlay" Panel.ZIndex="100" Fill="Black" Opacity=".5" Grid.RowSpan="6" Grid.ColumnSpan="4" Visibility="Hidden"></Rectangle>
     </Grid>
 </Window>
