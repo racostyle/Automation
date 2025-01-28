@@ -9,5 +9,6 @@ namespace Automation.ConfigurationAdapter
         string GetVisualValue(Visual visual);
         bool DoesMatchTo(Visual visual);
         string GetVisualNameWithoutPrefix(Visual visual);
+        string GetVisualName(Visual visual);
     }
 }

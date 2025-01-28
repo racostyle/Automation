@@ -1,29 +1,44 @@
-﻿namespace Automation.ConfigurationAdapter
+﻿using System.Windows.Controls;
+
+namespace Automation.ConfigurationAdapter
 {
     public class VisualTreeAdapterBuilder
     {
         private List<IVisualHandler> _visualHandlers;
+        private bool _usePrefixes = false;
 
         public VisualTreeAdapterBuilder()
         {
             _visualHandlers = new List<IVisualHandler>();
         }
 
-        public VisualTreeAdapterBuilder Configure_HandleTextBox()
+        public void ConfigureToUsePrefixes()
         {
-            _visualHandlers.Add(new Handler_TextBox());
+            _usePrefixes = true;
+        }
+
+        public VisualTreeAdapterBuilder Add_HandlerTextBox()
+        {
+            _visualHandlers.Add(new Handler_TextBox<TextBox>());
             return this;
         }
 
-        public VisualTreeAdapterBuilder Configure_HandleCheckBox()
+        public VisualTreeAdapterBuilder Add_HandlerCheckBox()
         {
-            _visualHandlers.Add(new Handler_CheckBox());
+            _visualHandlers.Add(new Handler_CheckBox<CheckBox>());
             return this;
         }
+
+        public VisualTreeAdapterBuilder Add_HandlerTextBlock()
+        {
+            _visualHandlers.Add(new Handler_TextBlock<TextBlock>());
+            return this;
+        }
+
 
         public VisualTreeAdapter Build()
         {
-            return new VisualTreeAdapter(_visualHandlers.ToArray());
+            return new VisualTreeAdapter(_visualHandlers.ToArray(), _usePrefixes);
         }
 
     }

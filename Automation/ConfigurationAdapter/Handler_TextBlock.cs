@@ -3,7 +3,7 @@ using System.Windows.Media;
 
 namespace Automation.ConfigurationAdapter
 {
-    public class Handler_TextBox<T> : IVisualHandler where T : TextBox
+    public class Handler_TextBlock<T> : IVisualHandler where T : TextBlock
     {
         public void AssignValueToVisual(Visual visual, string value)
         {
@@ -12,6 +12,7 @@ namespace Automation.ConfigurationAdapter
                 ((T)visual).Text = value;
             }
         }
+
         public string GetVisualValue(Visual visual)
         {
             return DoesMatchTo(visual) ? ((T)visual).Text : "";

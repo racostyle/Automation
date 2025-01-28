@@ -1,20 +1,27 @@
-﻿using System.Windows.Media;
+﻿using System.Windows;
+using System.Windows.Media;
 
 namespace Automation.ConfigurationAdapter
 {
     /// <summary>
-    /// naming convention prefixes: tb - textbox, rtb - RichTextBox, chb - CheckBox, cbb - ComboBox, rbtn - RadioButton
+    /// naming convention prefixes: tb - textbox, tbl - TextBlock, chb - CheckBox, cbb - ComboBox, rbtn - RadioButton
     /// Example: tbTextBox will come out from GetControlNameWithoutPrefix as TextBox
     /// </summary>
+    /// 
+
     public class VisualTreeAdapter
     {
+        private readonly string[] PREFIXES = ["tb", "tbl", "chb", "cbb", "rbtn"];
+
         public bool SavedByAdapter { get; private set; } = false;
 
+        private readonly bool _usePrefixes;
         private readonly IVisualHandler[] _visualHandlers;
 
-        public VisualTreeAdapter(IVisualHandler[] visualHandlers)
+        public VisualTreeAdapter(IVisualHandler[] visualHandlers, bool usePrefixes = false)
         {
             _visualHandlers = visualHandlers;
+            _usePrefixes = usePrefixes;
         }
 
         public Dictionary<string, string> Pack(Visual visualTree)
@@ -68,7 +75,15 @@ namespace Automation.ConfigurationAdapter
             foreach (var visual in visuals)
             {
                 if (_visualHandlers.Any(x => x.DoesMatchTo(visual)))
+                {
+                    if (_usePrefixes)
+                    {
+                        var name = ((FrameworkElement)visual).Name;
+                        if (!PREFIXES.Any(x => x.StartsWith(name)))
+                            continue;
+                    }
                     recognized.Add(visual);
+                }
             }
             return recognized;
         }

@@ -23,8 +23,8 @@ namespace Automation
             _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
 
             _visualTreeAdapter = new VisualTreeAdapterBuilder()
-                .Configure_HandleTextBox()
-                .Configure_HandleCheckBox()
+                .Add_HandlerTextBox()
+                .Add_HandlerCheckBox()
                 .Build();
 
             _deployer = new Deployer(new SimpleShellExecutor());
@@ -75,7 +75,7 @@ namespace Automation
 
         #endregion
 
-        #region auto handlers
+        #region AUTO HANDLERS
         private void OnTbScriptsLocation_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             if (!BaseScriptLocationSafetyCheck())
@@ -86,7 +86,7 @@ namespace Automation
 
         #endregion
 
-        #region Buttons
+        #region BUTTONS
         private void OnBtnEditAutomationScript_Click(object sender, RoutedEventArgs e)
         {
             if (!BaseScriptLocationSafetyCheck())
@@ -140,7 +140,7 @@ namespace Automation
 
         #endregion
 
-        #region Auxiliary
+        #region AUXILIARY
         private bool BaseScriptLocationSafetyCheck()
         {
             if (!Directory.Exists(tbScriptsLocation.Text))
