@@ -30,20 +30,7 @@ namespace Automation.Utils
                 process?.Kill();
             }
 
-            try
-            {
-                var text = File.ReadAllText(settings);
-                var config = JsonSerializer.Deserialize<Config>(text);
-                config.ScriptsFolder = scriptsLocation;
-
-                text = JsonSerializer.Serialize(config);
-                File.WriteAllText(settings, text);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, settings);
-                return false;
-            }
+            ChangeScriptLauncherSettings(scriptsLocation);
 
             //Check for Shortcut
             var startupPath = GetCommonStartupFolderPathManual();
@@ -91,6 +78,30 @@ namespace Automation.Utils
             var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation);
 
             return resultlauncher == resultMonitor;
+        }
+
+        public bool ChangeScriptLauncherSettings(string scriptsLocation)
+        {
+            var settings = $"{EASY_SCRIPT_LAUNCHER}_Settings.json";
+
+            if (!File.Exists(settings))
+                return false;
+
+            try
+            {
+                var text = File.ReadAllText(settings);
+                var config = JsonSerializer.Deserialize<Config>(text);
+                config.ScriptsFolder = scriptsLocation;
+
+                text = JsonSerializer.Serialize(config);
+                File.WriteAllText(settings, text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, settings);
+                return false;
+            }
+            return true;
         }
         #endregion
 

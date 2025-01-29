@@ -36,7 +36,7 @@ namespace Automation
 
             _deployer = new Deployer(new SimpleShellExecutor());
 
-            
+
         }
 
         #region CLOSED & LOADED HANDLERS
@@ -64,7 +64,17 @@ namespace Automation
             {
                 tbScriptsLocation.Text = "C:\\Delivery\\Automation\\Scripts";
                 Directory.CreateDirectory(tbScriptsLocation.Text);
-                SaveConfig();
+                MessageBox.Show("Directory 'C:\\Delivery\\Automation\\Scripts' was created");
+
+                try
+                {
+                    _deployer.ChangeScriptLauncherSettings(tbScriptsLocation.Text);
+                    SaveConfig();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("EasyScriptLauncher_Settings.json could not be saved!" + Environment.NewLine + ex.Message);    
+                }
             }
 
             LoadConfigs();
@@ -74,11 +84,12 @@ namespace Automation
 
         private bool CheckScriptsLocation()
         {
+            bool result = true;
             if (string.IsNullOrEmpty(tbScriptsLocation.Text))
-                return false;
+                result = false;
             if (!Directory.Exists(tbScriptsLocation.Text))
-                return false;
-            return true;
+                result = false;
+            return result;
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -141,7 +152,7 @@ namespace Automation
             HideOverlay();
         }
 
-        
+
         private async void OnBtnUpdate_Click(object sender, RoutedEventArgs e)
         {
             if (cbhDoUpdate.IsChecked == false)
@@ -159,6 +170,22 @@ namespace Automation
         {
             LoadConfigs();
         }
+
+        private void OnTbScriptsLocation_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var dialogResult = new FolderDialogWrapper().ShowFolderDialog_ReturnPath();
+
+            if (Directory.Exists(dialogResult))
+            {
+                tbScriptsLocation.Text = dialogResult;
+                _deployer.ChangeScriptLauncherSettings(tbScriptsLocation.Text);
+                SaveConfig();
+                MessageBox.Show($"Scripts location changed to: {Environment.NewLine}'{dialogResult}");
+            }
+            else
+                MessageBox.Show($"Directory '{dialogResult}' is not vaild!");
+        }
+
         #endregion
 
         #region AUXILIARY
