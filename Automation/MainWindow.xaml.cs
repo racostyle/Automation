@@ -42,54 +42,56 @@ namespace Automation
         #region CLOSED & LOADED HANDLERS
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (!File.Exists("appsettings.json"))
+            if (File.Exists("appsettings.json"))
             {
+                var json = File.ReadAllText("appsettings.json");
+                var config = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+
+                _visualTreeAdapter.Unpack(this, config);
+
+                var result = await _deployer.CheckEasyScriptLauncher(tbScriptsLocation.Text);
+                ColorButton(result, btnSetupScripLauncher);
+
+                result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text);
+                ColorButton(result, btnSetupTaskMonitor);
+
+                cbhDoUpdate.IsChecked = false;
+
                 HideOverlay();
-                return;
             }
 
-            var json = File.ReadAllText("appsettings.json");
-            var config = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+            if (!CheckScriptsLocation())
+            {
+                tbScriptsLocation.Text = "C:\\Delivery\\Automation\\Scripts";
+                Directory.CreateDirectory(tbScriptsLocation.Text);
+                SaveConfig();
+            }
 
-            _visualTreeAdapter.Unpack(this, config);
+            LoadConfigs();
 
-            await InitAfterLoadedAsync();
             HideOverlay();
         }
 
+        private bool CheckScriptsLocation()
+        {
+            if (string.IsNullOrEmpty(tbScriptsLocation.Text))
+                return false;
+            if (!Directory.Exists(tbScriptsLocation.Text))
+                return false;
+            return true;
+        }
+
         private void Window_Closed(object sender, EventArgs e)
+        {
+            SaveConfig();
+        }
+
+        private void SaveConfig()
         {
             var config = _visualTreeAdapter.Pack(this);
 
             var text = JsonSerializer.Serialize(config);
             File.WriteAllText("appsettings.json", text);
-        }
-
-        private async Task InitAfterLoadedAsync()
-        {
-            if (string.IsNullOrEmpty(tbScriptsLocation.Text))
-            {
-                tbScriptsLocation.Text = "C:\\Delivery\\Automation\\Scripts";
-                Directory.CreateDirectory(tbScriptsLocation.Text);
-            }
-
-            var result = await _deployer.CheckEasyScriptLauncher(tbScriptsLocation.Text);
-            ColorButton(result, btnSetupScripLauncher);
-
-            result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text);
-            ColorButton(result, btnSetupTaskMonitor);
-
-            cbhDoUpdate.IsChecked = false;
-        }
-        #endregion
-
-        #region AUTO HANDLERS
-        private void OnTbScriptsLocation_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            if (!BaseScriptLocationSafetyCheck())
-                return;
-
-            _configsWrapper.Load(tbScriptsLocation.Text);
         }
 
         #endregion
@@ -152,6 +154,11 @@ namespace Automation
             cbhDoUpdate.IsChecked = false;
             HideOverlay();
         }
+
+        private void OnBtnLoadScripts_Click(object sender, RoutedEventArgs e)
+        {
+            LoadConfigs();
+        }
         #endregion
 
         #region AUXILIARY
@@ -163,6 +170,14 @@ namespace Automation
                 return false;
             }
             return true;
+        }
+
+        private void LoadConfigs()
+        {
+            if (!BaseScriptLocationSafetyCheck())
+                return;
+
+            _configsWrapper.Load(tbScriptsLocation.Text);
         }
 
         private void ColorButton(bool result, Button button)
