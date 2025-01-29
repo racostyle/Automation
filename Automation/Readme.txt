@@ -1,0 +1,1 @@
+﻿When installing on new machine delete appsetings.json and EasyScriptLauncher_Settings.json if they are present.
