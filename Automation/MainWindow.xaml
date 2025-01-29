@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Automation"
         mc:Ignorable="d"
-        Title="MainWindow" Height="325" Width="500"
+        Title="Automation Manager" Height="325" Width="500"
         Background="Black"
         Loaded="Window_Loaded"
         Closed="Window_Closed"

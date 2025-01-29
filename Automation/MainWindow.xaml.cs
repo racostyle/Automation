@@ -32,6 +32,7 @@ namespace Automation
             _visualTreeAdapter = new VisualTreeAdapterBuilder()
                 .Add_HandlerTextBox()
                 .Add_HandlerCheckBox()
+                .ConfigureToUsePrefixes(false)
                 .Build();
 
             _deployer = new Deployer(new SimpleShellExecutor());

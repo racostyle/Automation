@@ -12,9 +12,10 @@ namespace Automation.ConfigurationAdapter
             _visualHandlers = new List<IVisualHandler>();
         }
 
-        public void ConfigureToUsePrefixes()
+        public VisualTreeAdapterBuilder ConfigureToUsePrefixes(bool what)
         {
-            _usePrefixes = true;
+            _usePrefixes = what;
+            return this;
         }
 
         public VisualTreeAdapterBuilder Add_HandlerTextBox()
