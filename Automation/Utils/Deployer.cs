@@ -18,16 +18,15 @@ namespace Automation.Utils
         }
 
         #region EASY SCRIPT LAUNCHER
-        public async Task<bool> CheckEasyScriptLauncher(string scriptsLocation)
+        public async Task<bool> CheckEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
         {
             //Check Settings
             var settings = $"{EASY_SCRIPT_LAUNCHER}_Settings.json";
 
             if (!File.Exists(settings))
             {
-                var process = _shell.ExecuteExe(Path.Combine(Directory.GetCurrentDirectory(), $"{EASY_SCRIPT_LAUNCHER}.exe"));
-                await Task.Delay(2000);
-                process?.Kill();
+                scriptLoader.LoadSettings(Path.Combine(Directory.GetCurrentDirectory(), settings));
+                await Task.Delay(200);
             }
 
             ChangeScriptLauncherSettings(scriptsLocation);
@@ -39,7 +38,7 @@ namespace Automation.Utils
             return doesShortcutExist;
         }
 
-        public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation)
+        public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
         {
             var commonStartup = GetCommonStartupFolderPathManual();
             if (!File.Exists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
@@ -48,12 +47,12 @@ namespace Automation.Utils
                 await Task.Delay(1000);
             }
 
-            var result = await CheckEasyScriptLauncher(scriptsLocation);
+            var result = await CheckEasyScriptLauncher(scriptsLocation, scriptLoader);
 
             return true;
         }
 
-        public async Task<bool> UpdateEasyScriptLauncher(string scriptsLocation)
+        public async Task<bool> UpdateEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
         {
             var settings = Path.Combine(Directory.GetCurrentDirectory(), $"{EASY_SCRIPT_LAUNCHER}_Settings.json");
             if (File.Exists(settings))
@@ -75,7 +74,7 @@ namespace Automation.Utils
             }
 
             var resultMonitor = SetupTaskMonitor(scriptsLocation);
-            var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation);
+            var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation, scriptLoader);
 
             return resultlauncher == resultMonitor;
         }

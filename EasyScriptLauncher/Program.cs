@@ -1,4 +1,5 @@
-﻿using EasyScriptLauncher.Utils;
+﻿using ConfigLib;
+using EasyScriptLauncher.Utils;
 using System;
 using System.IO;
 using System.Threading;
@@ -15,7 +16,7 @@ namespace EasyScriptLauncher
 
             try
             {
-                var config = new SettingsLoader().LoadSettings(SETTINGS_FILE);
+                var config = new SettingsLoader().LoadSettings(Path.Combine(Directory.GetCurrentDirectory(), SETTINGS_FILE));
                 var processLauncher = new ProcessLauncher(info, config);
 
                 if (!Directory.Exists(config.ScriptsFolder))

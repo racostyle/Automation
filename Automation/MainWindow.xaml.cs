@@ -50,7 +50,7 @@ namespace Automation
 
                 _visualTreeAdapter.Unpack(this, config);
 
-                var result = await _deployer.CheckEasyScriptLauncher(tbScriptsLocation.Text);
+                var result = await _deployer.CheckEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
                 ColorButton(result, btnSetupScripLauncher);
 
                 result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text);
@@ -137,7 +137,7 @@ namespace Automation
         private async void OnBtnSetupScripLauncher_Click(object sender, RoutedEventArgs e)
         {
             ShowOverlay();
-            var result = await _deployer.SetupEasyScriptLauncher(tbScriptsLocation.Text);
+            var result = await _deployer.SetupEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
             ColorButton(result, btnSetupScripLauncher);
             HideOverlay();
         }
@@ -160,7 +160,7 @@ namespace Automation
                 return;
 
             ShowOverlay();
-            var result = await _deployer.UpdateEasyScriptLauncher(tbScriptsLocation.Text);
+            var result = await _deployer.UpdateEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
             ColorButton(result, btnSetupTaskMonitor);
             ColorButton(result, btnSetupScripLauncher);
             cbhDoUpdate.IsChecked = false;
@@ -187,6 +187,19 @@ namespace Automation
                 MessageBox.Show($"Directory '{dialogResult}' is not vaild!");
         }
 
+        private void OnBtnStartEasyScriptLauncher_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var executor = new SimpleShellExecutor();
+                executor.ExecuteExe(Path.Combine(Directory.GetCurrentDirectory(), "EasyScriptLauncher.exe"));
+            }
+            catch (Exception ex) 
+            {
+                MessageBox.Show("Could not start EasyScriptLauncher. ERROR: " + ex.Message);
+            }
+        }
+
         #endregion
 
         #region AUXILIARY
@@ -206,6 +219,8 @@ namespace Automation
                 return;
 
             _configsWrapper.Load(tbScriptsLocation.Text);
+
+            ColorButton(cbbConfigs.Items.Count > 0, btnLoadScripts);
         }
 
         private void ColorButton(bool result, Button button)

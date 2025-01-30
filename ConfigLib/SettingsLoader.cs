@@ -1,13 +1,12 @@
-﻿using ConfigLib;
-using System;
+﻿using System;
 using System.IO;
 using System.Text.Json;
 
-namespace EasyScriptLauncher.Utils
+namespace ConfigLib
 {
-    internal class SettingsLoader
+    public class SettingsLoader
     {
-        internal Config LoadSettings(string settingsFile)
+        public Config LoadSettings(string settingsFile)
         {
             Config config;
             if (File.Exists(settingsFile))

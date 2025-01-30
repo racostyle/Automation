@@ -25,6 +25,8 @@ namespace Automation.Utils
             {
                 _comboBox.Items.Add(cfg);
             }
+
+            _comboBox.SelectedIndex = 0;
         }
 
         internal string GetValue()
