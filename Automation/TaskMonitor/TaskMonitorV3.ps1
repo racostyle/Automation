@@ -156,12 +156,19 @@ $runspaces = @()
 #Execution
 while ($true) {
     $delay = 0
+
+    if (Test-Path "C:\WORKING.txt" -PathType Leaf) {
+        "Execution of critical operation detected. Sleeping for 30 seconds"
+        Start-Sleep -Seconds 30
+        continue
+    } 
+
     foreach ($program in $programsList) {
         try {
             $name = $program.ProgramName
             $args = $program.Arguments
             $workingDir = $program.WorkingDirectory
-
+            
             if (-not (IsProcess $name)) {
 
                 Log-Message "${name} is not running" "WARNING"
