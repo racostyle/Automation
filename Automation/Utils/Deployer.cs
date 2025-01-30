@@ -142,7 +142,7 @@ namespace Automation.Utils
 
             try
             {
-                File.Copy(Path.Combine(Path.Combine(basePath, file)), path);
+                File.Copy(Path.Combine(Path.Combine(basePath, file)), path, true);
             }
             catch
             {
