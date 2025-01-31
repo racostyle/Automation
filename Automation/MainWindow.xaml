@@ -59,7 +59,7 @@
             <RowDefinition Height="1.3*"/>
         </Grid.RowDefinitions>
 
-        <Rectangle Name="recOverlay" Panel.ZIndex="1000" Fill="Black" Opacity=".5" Grid.RowSpan="8" Grid.ColumnSpan="4" Visibility="Visible"></Rectangle>
+        <Rectangle Name="recOverlay" Panel.ZIndex="1000" Fill="Black" Opacity=".5" Grid.RowSpan="9" Grid.ColumnSpan="4" Visibility="Visible"></Rectangle>
         
         <Label HorizontalAlignment="Right">Scripts Location: </Label>
         <TextBox Grid.Row="0" Grid.Column="1" Name="tbScriptsLocation" Grid.ColumnSpan="3" IsReadOnly="True" MouseDoubleClick="OnTbScriptsLocation_MouseDoubleClick"/>

@@ -74,9 +74,9 @@ If the executable requires arguments, ensure the `Arguments` field in the config
 - **Start-Process**: This is the primary method to start the executable. It supports passing arguments.
 - **Dot-Sourcing**: A fallback method if `Start-Process` fails. The script runs the executable using PowerShell's dot-sourcing mechanism.
 
-### Known Limitations
+### Pausing the script
 
-- **Invoke-Item**: The `Invoke-Item` command is commented out intentionally. It does not support passing arguments to executables and is disabled to avoid issues.
+If there is a file named `C:\WORKING.txt` the script will not run any program. Delete the txt file to continue operating
 
 ## Troubleshooting
 

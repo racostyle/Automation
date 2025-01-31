@@ -116,12 +116,6 @@ foreach ($configFile in $configFiles) {
     $programsList += $programInfo
 }
 
-Write-Host "--------------------------------------------------------------------------------------------" 
-
-Log-Message "About to sleep for 30 seconds to ensure environment is set"
-Start-Sleep -Seconds 30 #Delay before loop
-Log-Message "Resumed after sleeping for 30 seconds"
-
 #Minimize the window
 Add-Type @"
 using System;
@@ -140,6 +134,13 @@ $SW_MINIMIZE = 6
 $hWnd = [Win32]::GetForegroundWindow()
 $null = [Win32]::ShowWindow($hWnd, $SW_MINIMIZE) # null will prevent true being printed in console when window is minimized
 
+Write-Host "--------------------------------------------------------------------------------------------" 
+
+Log-Message "About to sleep for 30 seconds to ensure environment is set"
+Start-Sleep -Seconds 30 #Delay before loop
+Log-Message "Resumed after sleeping for 30 seconds"
+
+
 #InfoCheck. This is outside of the loop so it does not get spammed every interval
 foreach ($program in $programsList) {
     $IsProcessAlreadyRunning = Get-Process -Name $program.ProgramName -ErrorAction SilentlyContinue
@@ -153,11 +154,22 @@ $runspacePool.Open()
 # An array to store the runspaces
 $runspaces = @()
 
+
+function IsCriticalOperationRunning {
+    if (Test-Path "C:\WORKING.txt" -PathType Leaf) {
+        $result = $true
+    }
+    else {
+        $result = $false
+    }
+    $result
+}
+
 #Execution
 while ($true) {
     $delay = 0
 
-    if (Test-Path "C:\WORKING.txt" -PathType Leaf) {
+    if (IsCriticalOperationRunning) {
         "Execution of critical operation detected. Sleeping for 30 seconds"
         Start-Sleep -Seconds 30
         continue
@@ -185,12 +197,9 @@ while ($true) {
                 Start-Sleep -Seconds 5
                 $delay = $delay + 5
 
-                # if (-not (IsProcess $name)) {
-                #     Set-Location $workingDir
-                #     Invoke-Item "${name}.exe"
-                #     Log-Message "Attempted to start ${name} using Invoke-Item." "INFO"
-                #     Start-Sleep -Seconds 5
-                # }
+                if (IsCriticalOperationRunning) {
+                    break
+                } 
 
                 if (-not (IsProcess $name)) {
                     Set-Location $workingDir
@@ -203,6 +212,10 @@ while ($true) {
                     Log-Message "Attempted to start ${name} using dot sourcing (.\)." "INFO"
                     Start-Sleep -Seconds 5
                     $delay = $delay + 5
+
+                    if (IsCriticalOperationRunning) {
+                        break
+                    } 
                 }
 
                 if (IsProcess $name) {
