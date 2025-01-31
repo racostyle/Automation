@@ -76,7 +76,7 @@ If the executable requires arguments, ensure the `Arguments` field in the config
 
 ### Pausing the script
 
-If there is a file named `C:\WORKING.txt` the script will not run any program. Delete the txt file to continue operating
+If there is a file named `C:\WORKING.txt` the script will not start any program or detect if it is running. Delete the .txt file to continue operating
 
 ## Troubleshooting
 
