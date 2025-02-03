@@ -58,7 +58,7 @@ namespace Automation.ConfigurationAdapter
                     var name = handler.GetVisualNameWithoutPrefix(visual);
                     if (handler.DoesMatchTo(visual) && config.ContainsKey(name))
                     {
-                        handler.AssignValueToVisual(visual, config[name]);
+                        handler.AssignValueToVisual(visual, config[name].ToString());
                     }
                 }
             }

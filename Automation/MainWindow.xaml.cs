@@ -64,9 +64,11 @@ namespace Automation
             if (!CheckScriptsLocation())
             {
                 tbScriptsLocation.Text = "C:\\Delivery\\Automation\\Scripts";
-                Directory.CreateDirectory(tbScriptsLocation.Text);
-                MessageBox.Show("Directory 'C:\\Delivery\\Automation\\Scripts' was created");
-
+                if (!Directory.Exists(tbScriptsLocation.Text))
+                {
+                    Directory.CreateDirectory(tbScriptsLocation.Text);
+                    MessageBox.Show("Directory 'C:\\Delivery\\Automation\\Scripts' was created");
+                }
                 try
                 {
                     _deployer.ChangeScriptLauncherSettings(tbScriptsLocation.Text);
@@ -74,7 +76,7 @@ namespace Automation
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("EasyScriptLauncher_Settings.json could not be saved!" + Environment.NewLine + ex.Message);    
+                    MessageBox.Show("EasyScriptLauncher_Settings.json could not be saved!" + Environment.NewLine + ex.Message);
                 }
             }
 
@@ -103,7 +105,14 @@ namespace Automation
             var config = _visualTreeAdapter.Pack(this);
 
             var text = JsonSerializer.Serialize(config);
-            File.WriteAllText("appsettings.json", text);
+            try
+            {
+                File.WriteAllText("appsettings.json", text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not create config! ERROR: " + ex.Message);
+            }
         }
 
         #endregion
@@ -111,27 +120,41 @@ namespace Automation
         #region BUTTONS
         private void OnBtnEditAutomationScript_Click(object sender, RoutedEventArgs e)
         {
-            if (!BaseScriptLocationSafetyCheck())
-                return;
+            try
+            {
+                if (!BaseScriptLocationSafetyCheck())
+                    return;
 
-            var configLocation = _configsWrapper.GetValue();
-            if (string.IsNullOrEmpty(configLocation))
-                return;
+                var configLocation = _configsWrapper.GetValue();
+                if (string.IsNullOrEmpty(configLocation))
+                    return;
 
-            Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_visualTreeAdapter, tbScriptsLocation.Text, configLocation);
-            secWindow.ShowDialog();
+                Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_visualTreeAdapter, tbScriptsLocation.Text, configLocation);
+                secWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
 
         }
 
         private void OnBtnNewAutomationScript_Click(object sender, RoutedEventArgs e)
         {
-            if (!BaseScriptLocationSafetyCheck())
-                return;
+            try
+            {
+                if (!BaseScriptLocationSafetyCheck())
+                    return;
 
-            Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_visualTreeAdapter, tbScriptsLocation.Text, string.Empty);
-            secWindow.ShowDialog();
+                Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_visualTreeAdapter, tbScriptsLocation.Text, string.Empty);
+                secWindow.ShowDialog();
 
-            _configsWrapper.Load(tbScriptsLocation.Text);
+                _configsWrapper.Load(tbScriptsLocation.Text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private async void OnBtnSetupScripLauncher_Click(object sender, RoutedEventArgs e)
@@ -194,7 +217,7 @@ namespace Automation
                 var executor = new SimpleShellExecutor();
                 executor.ExecuteExe(Path.Combine(Directory.GetCurrentDirectory(), "EasyScriptLauncher.exe"));
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 MessageBox.Show("Could not start EasyScriptLauncher. ERROR: " + ex.Message);
             }

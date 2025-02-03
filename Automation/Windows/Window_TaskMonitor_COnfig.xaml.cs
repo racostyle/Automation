@@ -22,9 +22,7 @@ namespace Automation
             _baseScriptsLocation = baseScriptsLocation;
             _configLocation = configLocation;
 
-            tbCheckInterval.Text = "60";
-
-            if (string.IsNullOrEmpty(_configLocation))  
+            if (string.IsNullOrEmpty(_configLocation))
                 return;
 
             this.Loaded += Window_TaskMonitor_Config_LoadedAsync;
@@ -32,15 +30,23 @@ namespace Automation
 
         private void Window_TaskMonitor_Config_LoadedAsync(object sender, RoutedEventArgs e)
         {
-            var text = File.ReadAllText(_configLocation);
-            var json = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
+            try
+            {
+                var text = File.ReadAllText(_configLocation);
+                var json = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
 
-            _visualTreeAdapter.Unpack(this, json);
+                _visualTreeAdapter.Unpack(this, json);
+            }
+            catch (Exception ex) 
+            {
+                MessageBox.Show(ex.Message);
+            }
+
         }
 
         private void tbCancel_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = true; 
+            this.DialogResult = true;
             this.Close();
         }
 
@@ -56,14 +62,14 @@ namespace Automation
             var json = JsonSerializer.Serialize(config);
             File.WriteAllText(_configLocation, json);
 
-            this.DialogResult = false; 
-            this.Close(); 
+            this.DialogResult = false;
+            this.Close();
         }
 
         private void btnSearchForLocation_Click(object sender, RoutedEventArgs e)
         {
             var file = new FolderDialogWrapper().ShowFileDialog_ReturnPath();
-            if (string.IsNullOrEmpty(file)) 
+            if (string.IsNullOrEmpty(file))
                 return;
 
             if (!File.Exists(file))

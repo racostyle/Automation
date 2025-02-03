@@ -22,7 +22,6 @@
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
 
         <Grid.Resources>
@@ -54,15 +53,13 @@
 
         <Label Grid.Row="0" Grid.Column="0" Content="BaseFolder: " HorizontalAlignment="Right"/>
         <Label Grid.Row="1" Grid.Column="0" Content="ExecutableName: " HorizontalAlignment="Right"/>
-        <Label Grid.Row="3" Grid.Column="0" Content="CheckInterval: " HorizontalAlignment="Right"/>
-        <Label Grid.Row="4" Grid.Column="0" Content="Arguments: " HorizontalAlignment="Right"/>
+        <Label Grid.Row="3" Grid.Column="0" Content="Arguments: " HorizontalAlignment="Right"/>
 
         <TextBox Name="tbBaseFolder" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"/>
         <TextBox Name="tbExecutableName" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3"/>
-        <TextBox Name="tbCheckInterval" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3"/>
-        <TextBox Name="tbArguments" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"/>
+        <TextBox Name="tbArguments" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3"/>
 
-        <Button Name="tbCancel" Content="Cancel" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Background="IndianRed" Click="tbCancel_Click"/>
-        <Button Name="tbConfirmAndSave" Content="Confirm" Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Background="LightGreen" Click="tbConfirmAndSave_Click"/>
+        <Button Name="tbCancel" Content="Cancel" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Background="IndianRed" Click="tbCancel_Click"/>
+        <Button Name="tbConfirmAndSave" Content="Confirm" Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Background="LightGreen" Click="tbConfirmAndSave_Click"/>
     </Grid>
 </Window>
