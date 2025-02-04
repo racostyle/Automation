@@ -16,6 +16,8 @@ function Restart-Script {
     exit
 }
 
+$host.UI.RawUI.WindowTitle = "Monitoring Script"
+
 # Is process running
 function IsProcess {
     param (
