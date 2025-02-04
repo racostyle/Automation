@@ -16,6 +16,12 @@ function Restart-Script {
     exit
 }
 
+# Check if running as administrator
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Restart-Script -runAsAdmin $true
+    exit
+}
+
 $host.UI.RawUI.WindowTitle = "Monitoring Script"
 
 # Is process running
@@ -55,12 +61,6 @@ function Log-Message {
     }
 }
 
-# Check if running as administrator
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Restart-Script -runAsAdmin $true
-    exit
-}
-
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $configFiles = Get-ChildItem -Path $scriptDirectory -Filter "*_Config.json" -File
 
@@ -75,29 +75,32 @@ foreach ($configFile in $configFiles) {
     $config = Get-Content $configPath -Force | ConvertFrom-Json
     $BaseFolder = $config.BaseFolder
     $ExecutableName = $config.ExecutableName
-
     $Arguments = $config.Arguments
 
-    if (-not (Test-Path -Path $BaseFolder -PathType Container)) {
-        Log-Message "The BaseFolder in $($configFile) is not a valid folder or directory. It may point to a script or executable." "ERROR"
-        exit 1
-    }
+    $expectedExecutablePath = Join-Path -Path $BaseFolder -ChildPath $ExecutableName
 
-    $ProgramPath = Get-ChildItem -LiteralPath  $BaseFolder -Filter $ExecutableName -Recurse -File -ErrorAction SilentlyContinue |
-    Sort-Object LastWriteTime -Descending |
-    Select-Object -First 1 -ExpandProperty FullName
+    # Check if the executable exists at the expected location
+    if (-not (Test-Path -Path $expectedExecutablePath)) {
+        Log-Message "The expected executable $expectedExecutablePath does not exist, starting search..." "INFO"
+        # If not found, proceed with deep search
+        $ProgramPath = Get-ChildItem -LiteralPath $BaseFolder -Filter $ExecutableName -Recurse -File -ErrorAction SilentlyContinue |
+                       Sort-Object LastWriteTime -Descending |
+                       Select-Object -First 1 -ExpandProperty FullName
+    } else {
+        $ProgramPath = $expectedExecutablePath
+        Log-Message "Executable file found at expected location: $ProgramPath"
+    }
 
     if (Test-Path -Path $ProgramPath) {
-        Log-Message "Executable file found: $ProgramPath"
+        Log-Message "Executable file confirmed: $ProgramPath"
     }
     else {
-        Log-Message "Executable file does not exist: $ProgramPath"
+        Log-Message "Executable file does not exist after search: $ProgramPath"
         continue
     }
 
     $ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($ProgramPath)
     $WorkingDirectory = Split-Path -Path $ProgramPath
-    Log-Message "Working directory: $WorkingDirectory"
 
     $programInfo = [PSCustomObject]@{
         ProgramPath      = $ProgramPath
