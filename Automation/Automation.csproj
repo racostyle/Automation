@@ -2,11 +2,10 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
 	<Version>1.0.3</Version>
 	<AssemblyInformationalVersion>1.0.3</AssemblyInformationalVersion>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>

@@ -1,6 +1,9 @@
 ﻿using Automation.ConfigurationAdapter;
 using Automation.Utils;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Security.Principal;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,7 +22,7 @@ namespace Automation
 
         public MainWindow()
         {
-            if (!Environment.IsPrivilegedProcess)
+            if (!IsRunningAsAdministrator())
             {
                 MessageBox.Show("Start this app as admin!");
                 Environment.Exit(0);
@@ -36,9 +39,17 @@ namespace Automation
                 .Build();
 
             _deployer = new Deployer(new SimpleShellExecutor());
-
-
         }
+
+        public static bool IsRunningAsAdministrator()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+
 
         #region CLOSED & LOADED HANDLERS
         private async void Window_Loaded(object sender, RoutedEventArgs e)
