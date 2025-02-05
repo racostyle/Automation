@@ -129,6 +129,23 @@ $SW_MINIMIZE = 6
 $hWnd = [Win32]::GetForegroundWindow()
 $null = [Win32]::ShowWindow($hWnd, $SW_MINIMIZE) # null will prevent true being printed in console when window is minimized
 
+$criticalOperationFile = "C:\WORKING.txt"
+
+function IsCriticalOperationRunning {
+    if (Test-Path $criticalOperationFile -PathType Leaf) {
+        $result = $true
+    }
+    else {
+        $result = $false
+    }
+    $result
+}
+
+#Safetycheck: delete leftover operation file at startup just in case
+if (IsCriticalOperationRunning){
+    Remove-Item $criticalOperationFile
+}
+
 Write-Host "--------------------------------------------------------------------------------------------" 
 
 Log-Message "About to sleep for 30 seconds to ensure environment is set"
@@ -150,16 +167,6 @@ $runspacePool.Open()
 $runspaces = @()
 
 $CheckInterval = 60
-
-function IsCriticalOperationRunning {
-    if (Test-Path "C:\WORKING.txt" -PathType Leaf) {
-        $result = $true
-    }
-    else {
-        $result = $false
-    }
-    $result
-}
 
 #Execution
 while ($true) {
