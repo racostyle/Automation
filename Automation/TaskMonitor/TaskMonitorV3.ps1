@@ -143,7 +143,7 @@ function IsCriticalOperationRunning {
 
 #Safetycheck: delete leftover operation file at startup just in case
 if (IsCriticalOperationRunning){
-    Remove-Item $criticalOperationFile
+    Remove-Item $criticalOperationFile -Force
 }
 
 Write-Host "--------------------------------------------------------------------------------------------" 
