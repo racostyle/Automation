@@ -223,6 +223,11 @@ namespace Automation
             }
         }
 
+        private void OnBtnShowLocations_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
         #endregion
 
         #region AUXILIARY
