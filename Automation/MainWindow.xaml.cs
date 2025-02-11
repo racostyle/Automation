@@ -1,5 +1,6 @@
 ﻿using Automation.ConfigurationAdapter;
 using Automation.Utils;
+using Automation.Windows;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -16,6 +17,8 @@ namespace Automation
         private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
         private readonly VisualTreeAdapter _visualTreeAdapter;
         private readonly Deployer _deployer;
+
+        private Window _debugWindow;
 
         public MainWindow()
         {
@@ -98,6 +101,7 @@ namespace Automation
         private void Window_Closed(object sender, EventArgs e)
         {
             SaveConfig();
+            _debugWindow?.Close();
         }
 
         private void SaveConfig()
@@ -225,7 +229,17 @@ namespace Automation
 
         private void OnBtnShowLocations_Click(object sender, RoutedEventArgs e)
         {
-
+            if (_debugWindow == null)
+            {
+                _debugWindow = new DebugWindow(this);
+                _debugWindow.Closed += DebugWindow_Closed!;
+                _debugWindow.Show();
+            }
+        }
+        private void DebugWindow_Closed(object sender, EventArgs e)
+        {
+            _debugWindow.Closed -= DebugWindow_Closed!; 
+            _debugWindow = null; 
         }
 
         #endregion
