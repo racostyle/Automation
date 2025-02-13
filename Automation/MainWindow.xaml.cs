@@ -17,7 +17,6 @@ namespace Automation
         private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
         private readonly VisualTreeAdapter _visualTreeAdapter;
         private readonly Deployer _deployer;
-
         private Window _debugWindow;
 
         public MainWindow()
@@ -31,16 +30,13 @@ namespace Automation
             InitializeComponent();
 
             _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
+            _deployer = new Deployer(new SimpleShellExecutor());
 
             _visualTreeAdapter = new VisualTreeAdapterBuilder()
                 .Add_HandlerTextBox()
                 .Add_HandlerCheckBox()
                 .ConfigureToUsePrefixes(false)
                 .Build();
-
-            _deployer = new Deployer(new SimpleShellExecutor());
-
-
         }
 
         #region CLOSED & LOADED HANDLERS
@@ -66,7 +62,13 @@ namespace Automation
 
             if (!CheckScriptsLocation())
             {
+
+                var commonPath = _deployer.GetCommonStartupFolderPath();
+                if (!string.IsNullOrEmpty(commonPath))
+                    tbCommonStartup.Text = commonPath;
+
                 tbScriptsLocation.Text = "C:\\Delivery\\Automation\\Scripts";
+
                 if (!Directory.Exists(tbScriptsLocation.Text))
                 {
                     Directory.CreateDirectory(tbScriptsLocation.Text);
@@ -104,7 +106,7 @@ namespace Automation
             _debugWindow?.Close();
         }
 
-        private void SaveConfig()
+        private Dictionary<string,string> SaveConfig()
         {
             var config = _visualTreeAdapter.Pack(this);
 
@@ -117,6 +119,7 @@ namespace Automation
             {
                 MessageBox.Show("Could not create config! ERROR: " + ex.Message);
             }
+            return config;
         }
 
         #endregion
@@ -231,7 +234,7 @@ namespace Automation
         {
             if (_debugWindow == null)
             {
-                _debugWindow = new DebugWindow(this);
+                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, tbCommonStartup.Text);
                 _debugWindow.Closed += DebugWindow_Closed!;
                 _debugWindow.Show();
             }
