@@ -37,11 +37,10 @@ namespace Automation
 
                 _visualTreeAdapter.Unpack(this, json);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-
         }
 
         private void tbCancel_Click(object sender, RoutedEventArgs e)
@@ -52,11 +51,14 @@ namespace Automation
 
         private void tbConfirmAndSave_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(_configLocation))
+            if (string.IsNullOrEmpty(tbExecutableName.Text))
             {
-                var fileName = $"{Path.GetFileNameWithoutExtension(tbExecutableName.Text)}_Config.json";
-                _configLocation = Path.Combine(_baseScriptsLocation, fileName);
+                MessageBox.Show("\tError: invalid path!\t");
+                return;
             }
+
+            var fileName = $"{Path.GetFileNameWithoutExtension(tbExecutableName.Text)}_Config.json";
+            _configLocation = Path.Combine(_baseScriptsLocation, fileName);
 
             var config = _visualTreeAdapter.Pack(this);
             var json = JsonSerializer.Serialize(config);
