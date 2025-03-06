@@ -38,6 +38,8 @@ namespace Automation
                 var json = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
 
                 _visualTreeAdapter.Unpack(this, json);
+
+                RepairConfigValues();
             }
             catch (Exception ex) 
             {
@@ -46,13 +48,21 @@ namespace Automation
 
         }
 
-        private void tbCancel_Click(object sender, RoutedEventArgs e)
+        private void RepairConfigValues()
+        {
+            if (string.IsNullOrEmpty(tbPriority.Text) || !int.TryParse(tbPriority.Text, out var result))
+            {
+                tbPriority.Text = "100";
+            }
+        }
+
+        private void OnBtnCancel_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = true;
             this.Close();
         }
 
-        private void tbConfirmAndSave_Click(object sender, RoutedEventArgs e)
+        private void OnBtnConfirmAndSave_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(_configLocation))
             {
@@ -68,7 +78,7 @@ namespace Automation
             this.Close();
         }
 
-        private void btnSearchForLocation_Click(object sender, RoutedEventArgs e)
+        private void OnBtnSearchForLocation_Click(object sender, RoutedEventArgs e)
         {
             var file = new FolderDialogWrapper().ShowFileDialog_ReturnPath();
             if (string.IsNullOrEmpty(file))

@@ -54,7 +54,7 @@
             Grid.Column="1" 
             Grid.ColumnSpan="2" 
             Background="LightYellow"
-            Click="btnSearchForLocation_Click"/>
+            Click="OnBtnSearchForLocation_Click"/>
 
         <Label Grid.Row="0" Grid.Column="0" Content="BaseFolder: " HorizontalAlignment="Right"/>
         <Label Grid.Row="1" Grid.Column="0" Content="ExecutableName: " HorizontalAlignment="Right"/>
@@ -64,7 +64,7 @@
             Grid.Row="5" 
             Grid.Column="0" 
             Grid.ColumnSpan="4" 
-            Content="Lower the priority the quicker TaskMonitor will execute executable. Lower is quicker. Leave default value (100)."
+            Content="Lower the priority the quicker TaskMonitor will execute executable in order. Leave default value (100)."
             HorizontalAlignment="Center" FontSize="10"/>
 
         <TextBox Name="tbBaseFolder" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"/>
@@ -72,7 +72,7 @@
         <TextBox Name="tbArguments" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3"/>
         <TextBox Name="tbPriority" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"/>
 
-        <Button Name="tbCancel" Content="Cancel" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Background="IndianRed" Click="tbCancel_Click"/>
-        <Button Name="tbConfirmAndSave" Content="Confirm" Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Background="LightGreen" Click="tbConfirmAndSave_Click"/>
+        <Button Name="btnCancel" Content="Cancel" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Background="IndianRed" Click="OnBtnCancel_Click"/>
+        <Button Name="btnConfirmAndSave" Content="Confirm" Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Background="LightGreen" Click="OnBtnConfirmAndSave_Click"/>
     </Grid>
 </Window>
