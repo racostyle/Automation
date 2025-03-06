@@ -16,6 +16,7 @@ namespace Automation
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly DebugOptionsCounter _debugCounter;
         private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
         private readonly VisualTreeAdapter _visualTreeAdapter;
         private readonly Deployer _deployer;
@@ -39,6 +40,8 @@ namespace Automation
                 .Build();
 
             _deployer = new Deployer(new SimpleShellExecutor());
+
+            _debugCounter = new DebugOptionsCounter();
         }
 
         public static bool IsRunningAsAdministrator()
@@ -67,7 +70,6 @@ namespace Automation
                 result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text);
                 ColorButton(result, btnSetupTaskMonitor);
 
-                cbhDoUpdate.IsChecked = false;
 
                 HideOverlay();
             }
@@ -187,20 +189,6 @@ namespace Automation
             HideOverlay();
         }
 
-
-        private async void OnBtnUpdate_Click(object sender, RoutedEventArgs e)
-        {
-            if (cbhDoUpdate.IsChecked == false)
-                return;
-
-            ShowOverlay();
-            var result = await _deployer.UpdateEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
-            ColorButton(result, btnSetupTaskMonitor);
-            ColorButton(result, btnSetupScripLauncher);
-            cbhDoUpdate.IsChecked = false;
-            HideOverlay();
-        }
-
         private void OnBtnLoadScripts_Click(object sender, RoutedEventArgs e)
         {
             LoadConfigs();
@@ -273,6 +261,17 @@ namespace Automation
         private void HideOverlay()
         {
             recOverlay.Visibility = Visibility.Hidden;
+        }
+        #endregion
+
+        #region DEV OPTIONS
+        private void Label_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (_debugCounter.DoOpenWindow())
+            {
+                var window = new DeveloperOptionsWindow(_deployer, tbScriptsLocation.Text);
+                window.ShowDialog();
+            }
         }
         #endregion
     }

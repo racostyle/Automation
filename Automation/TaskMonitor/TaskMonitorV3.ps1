@@ -130,7 +130,6 @@ $hWnd = [Win32]::GetForegroundWindow()
 $null = [Win32]::ShowWindow($hWnd, $SW_MINIMIZE) # null will prevent true being printed in console when window is minimized
 
 $criticalOperationFile = "C:\WORKING.txt"
-
 function IsCriticalOperationRunning {
     if (Test-Path $criticalOperationFile -PathType Leaf) {
         $result = $true
