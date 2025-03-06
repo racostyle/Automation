@@ -1,4 +1,5 @@
 ﻿using Automation.Utils;
+using System.Diagnostics;
 using System.Windows;
 
 namespace Automation
@@ -38,6 +39,22 @@ namespace Automation
         private void HideOverlay()
         {
             recOverlay.Visibility = Visibility.Hidden;
+        }
+
+        private void OnBtnOpenConfigsLocation_Click(object sender, RoutedEventArgs e)
+        {
+            var process = new Process();
+            process.StartInfo.FileName = "explorer.exe";
+            process.StartInfo.Arguments = _scriptsLocation;
+            process.Start();
+        }
+
+        private void OnBtnOpenStartupLocation_Click(object sender, RoutedEventArgs e)
+        {
+            var process = new Process();
+            process.StartInfo.FileName = "explorer.exe";
+            process.StartInfo.Arguments = _deployer.GetCommonStartupFolderPath();
+            process.Start();
         }
     }
 }

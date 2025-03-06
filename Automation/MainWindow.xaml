@@ -51,7 +51,6 @@
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1.5*"/>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="1.5*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1.5*"/>
             <RowDefinition Height="1*"/>
@@ -68,15 +67,14 @@
         <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Name="btnSetupScripLauncher" Click="OnBtnSetupScripLauncher_Click">Setup EasyScriptLauncher</Button>
         <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Name="btnSetupTaskMonitor" Click="OnBtnSetupTaskMonitor_Click">Setup TaskMonitor</Button>
 
-        <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap">This tool is for easier setup of .exe programs we want to monitor. Each program needs its own script in default Scripts location (was autofilled).</TextBlock>
+        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap">This tool is for easier setup of .exe programs we want to monitor. Each program needs its own script in default Scripts location (was autofilled).</TextBlock>
         
-        <Button Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Name="btnEditAutomationScript" Click="OnBtnEditAutomationScript_Click">Edit Automation Script</Button>
-        <Button Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Name="btnNewAutomationScript" Click="OnBtnNewAutomationScript_Click">New Automation Script</Button>
-        <ComboBox Grid.Row="7" Grid.Column="0" Name="cbbConfigs" Grid.ColumnSpan="4" />
+        <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Name="btnEditAutomationScript" Click="OnBtnEditAutomationScript_Click">Edit Automation Script</Button>
+        <Button Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Name="btnNewAutomationScript" Click="OnBtnNewAutomationScript_Click">New Automation Script</Button>
+        <ComboBox Grid.Row="6" Grid.Column="0" Name="cbbConfigs" Grid.ColumnSpan="4" />
 
-        <Button Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" Name="btnLoadScripts" Click="OnBtnLoadScripts_Click">Load Scripts</Button>
-        <Button Grid.Row="8" Grid.Column="2" Grid.ColumnSpan="2" Name="btnStartEasyScriptLauncher" Click="OnBtnStartEasyScriptLauncher_Click">Start Script Launcher</Button>
-        
-        
+        <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Name="btnLoadScripts" Click="OnBtnLoadScripts_Click">Load Scripts</Button>
+        <Button Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="2" Name="btnStartEasyScriptLauncher" Click="OnBtnStartEasyScriptLauncher_Click">Start Script Launcher</Button>
+
     </Grid>
 </Window>

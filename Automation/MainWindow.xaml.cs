@@ -16,6 +16,8 @@ namespace Automation
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly string DEFAULTS_SCRIPTS_LOCATION = "C:\\Delivery\\Automation\\Scripts";
+
         private readonly DebugOptionsCounter _debugCounter;
         private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
         private readonly VisualTreeAdapter _visualTreeAdapter;
@@ -76,11 +78,11 @@ namespace Automation
 
             if (!CheckScriptsLocation())
             {
-                tbScriptsLocation.Text = "C:\\Delivery\\Automation\\Scripts";
+                tbScriptsLocation.Text = DEFAULTS_SCRIPTS_LOCATION;
                 if (!Directory.Exists(tbScriptsLocation.Text))
                 {
                     Directory.CreateDirectory(tbScriptsLocation.Text);
-                    MessageBox.Show("Directory 'C:\\Delivery\\Automation\\Scripts' was created");
+                    MessageBox.Show($"Directory '{DEFAULTS_SCRIPTS_LOCATION}' was created");
                 }
                 try
                 {
