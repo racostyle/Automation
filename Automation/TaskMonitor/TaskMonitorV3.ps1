@@ -73,9 +73,15 @@ foreach ($configFile in $configFiles) {
 
     $configPath = Join-Path -Path $scriptDirectory -ChildPath $configFile
     $config = Get-Content $configPath -Force | ConvertFrom-Json
+
     $BaseFolder = $config.BaseFolder
     $ExecutableName = $config.ExecutableName
     $Arguments = $config.Arguments
+    [int]$Priority = 0
+
+    if ($config.PSObject.Properties.Name -contains 'Priority') {
+        $success = [int]::TryParse($config.Priority, [ref]$Priority)
+    }
 
     $expectedExecutablePath = Join-Path -Path $BaseFolder -ChildPath $ExecutableName
 
@@ -105,11 +111,16 @@ foreach ($configFile in $configFiles) {
     $programInfo = [PSCustomObject]@{
         ProgramPath      = $ProgramPath
         ProgramName      = $ProgramName
+        ExecutableName   = $ExecutableName
         WorkingDirectory = $WorkingDirectory
         Arguments        = $Arguments
+        Priority         = $Priority
     }
     $programsList += $programInfo
 }
+
+# Sort the programs list by Priority from lowest to highest
+$programsList = $programsList | Sort-Object -Property Priority
 
 #Minimize the window
 Add-Type @"
@@ -182,49 +193,43 @@ while ($true) {
             $name = $program.ProgramName
             $args = $program.Arguments
             $workingDir = $program.WorkingDirectory
+            $executable = $program.ExecutableName
             
             if (-not (IsProcess $name)) {
 
-                Log-Message "${name} is not running" "WARNING"
-                Log-Message "Attempting to start: ${ProgramPath}" "INFO"
-
-                Set-Location $workingDir
-                if (-not [string]::IsNullOrEmpty($args)) {
-                    Start-Process "${name}.exe" -ArgumentList "$args" -ErrorAction Stop
-                }
-                else {
-                    Start-Process "${name}.exe" -ErrorAction Stop
-                }
-                Log-Message "Attempted to start ${name} using Start-Process." "INFO"
-                Start-Sleep -Seconds 5
-                $delay = $delay + 5
-
                 if (IsCriticalOperationRunning) {
                     break
-                } 
+                }
 
-                if (-not (IsProcess $name)) {
-                    Set-Location $workingDir
+                Set-Location $workingDir
+
+                if ($ExecutableName.EndsWith(".ps1", [StringComparison]::OrdinalIgnoreCase)) {
+                    $command = "PowerShell.exe -ExecutionPolicy Bypass -File `"$executable`""
+                    if (![string]::IsNullOrEmpty($args)) {
+                        $command += " $args"
+                    }
+                    Invoke-Expression $command
+                    Log-Message "${name} Executed." "INFO"
+                } else {
+                    Log-Message "${name} is not running" "WARNING"
+                    Log-Message "Attempting to start: ${ProgramPath}" "INFO"
+
                     if (-not [string]::IsNullOrEmpty($args)) {
-                        . .\"${name}.exe" $args
+                        Start-Process "${executable}" -ArgumentList "$args" -ErrorAction Stop
                     }
                     else {
-                        . .\"${name}.exe"
+                        Start-Process "${executable}" -ErrorAction Stop
                     }
-                    Log-Message "Attempted to start ${name} using dot sourcing (.\)." "INFO"
+                    Log-Message "Attempted to start ${name} using Start-Process." "INFO"
                     Start-Sleep -Seconds 5
                     $delay = $delay + 5
 
-                    if (IsCriticalOperationRunning) {
-                        break
-                    } 
-                }
-
-                if (IsProcess $name) {
-                    Log-Message "${name} started successfully." "INFO"
-                }
-                else {
-                    Log-Message "Failed to start ${name}: $_" "ERROR"
+                    if (IsProcess $name) {
+                        Log-Message "${name} started successfully." "INFO"
+                    }
+                    else {
+                        Log-Message "Failed to start ${name}: $_" "ERROR"
+                    }
                 }
             }
         }

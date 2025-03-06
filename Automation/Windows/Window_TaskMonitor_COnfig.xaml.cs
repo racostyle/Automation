@@ -45,7 +45,6 @@ namespace Automation
             {
                 MessageBox.Show(ex.Message);
             }
-
         }
 
         private void RepairConfigValues()
