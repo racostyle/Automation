@@ -58,17 +58,17 @@
             <RowDefinition Height="1.3*"/>
         </Grid.RowDefinitions>
 
-        <Rectangle Name="recOverlay" Panel.ZIndex="1000" Fill="Black" Opacity=".5" Grid.RowSpan="9" Grid.ColumnSpan="4" Visibility="Visible"></Rectangle>
-        
-        <Label HorizontalAlignment="Right" MouseDown="Label_MouseDown">Scripts Location: </Label>
+        <Rectangle Name="recOverlay" Panel.ZIndex="1000" Fill="Black" Opacity=".5" Grid.RowSpan="9" Grid.ColumnSpan="4" Visibility="Hidden"></Rectangle>
+
+        <Label MouseDown="Label_MouseDown" Margin="29,0,0,0">Scripts Location:</Label>
         <TextBox Grid.Row="0" Grid.Column="1" Name="tbScriptsLocation" Grid.ColumnSpan="3" IsReadOnly="True" MouseDoubleClick="OnTbScriptsLocation_MouseDoubleClick"/>
         <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap">If buttons are Green checks were ok an nothing is needed. If red click the corresponding button and the program will fix it for you.</TextBlock>
-        
+
         <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Name="btnSetupScripLauncher" Click="OnBtnSetupScripLauncher_Click">Setup EasyScriptLauncher</Button>
         <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Name="btnSetupTaskMonitor" Click="OnBtnSetupTaskMonitor_Click">Setup TaskMonitor</Button>
 
         <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap">This tool is for easier setup of .exe programs we want to monitor. Each program needs its own script in default Scripts location (was autofilled).</TextBlock>
-        
+
         <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Name="btnEditAutomationScript" Click="OnBtnEditAutomationScript_Click">Edit Automation Script</Button>
         <Button Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Name="btnNewAutomationScript" Click="OnBtnNewAutomationScript_Click">New Automation Script</Button>
         <ComboBox Grid.Row="6" Grid.Column="0" Name="cbbConfigs" Grid.ColumnSpan="4" />
