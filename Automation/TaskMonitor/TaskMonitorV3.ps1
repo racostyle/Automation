@@ -26,7 +26,7 @@ $host.UI.RawUI.WindowTitle = "Monitoring Script"
 
 # Get the current process ID
 $currentProcessId = $PID
-$scriptName = "TaskMonitorV3.ps1"
+$scriptName = Split-Path -Leaf $MyInvocation.MyCommand.Path
 # Check if any other process is running the same script
 $existingProcess = Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object {
     $_.CommandLine -like "*$scriptName*" -and $_.ProcessId -ne $currentProcessId
