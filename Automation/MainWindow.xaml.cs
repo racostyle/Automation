@@ -16,8 +16,6 @@ namespace Automation
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly string DEFAULTS_SCRIPTS_LOCATION = "C:\\Delivery\\Automation\\Scripts";
-
         private readonly DebugOptionsCounter _debugCounter;
         private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
         private readonly VisualTreeAdapter _visualTreeAdapter;
@@ -78,12 +76,20 @@ namespace Automation
 
             if (!CheckScriptsLocation())
             {
-                tbScriptsLocation.Text = DEFAULTS_SCRIPTS_LOCATION;
+                var json = File.ReadAllText("defLocSettings.Json");
+                var settings = JsonSerializer.Deserialize<Dictionary<string, string>>( json);
+
+                tbScriptsLocation.Text = settings["DEFAULT_SCRIPTS_LOCATION"];
                 if (!Directory.Exists(tbScriptsLocation.Text))
                 {
                     Directory.CreateDirectory(tbScriptsLocation.Text);
-                    MessageBox.Show($"Directory '{DEFAULTS_SCRIPTS_LOCATION}' was created");
+                    MessageBox.Show($"Directory '{tbScriptsLocation.Text}' was created");
+
+                    var recurringPath = Path.Combine(settings["DEFAULT_SCRIPTS_LOCATION"], settings["RECURRING_SCRIPTS_LOCATION"]);
+                    Directory.CreateDirectory(recurringPath);
+                    MessageBox.Show($"Directory '{recurringPath}' was created");
                 }
+
                 try
                 {
                     _deployer.ChangeScriptLauncherSettings(tbScriptsLocation.Text);

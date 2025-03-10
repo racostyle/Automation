@@ -222,7 +222,9 @@ while ($true) {
                         $command += " $args"
                     }
                     Invoke-Expression $command
-                    Log-Message "${name} Executed." "INFO"
+                    # Log-Message "${name} Executed." "INFO" 
+                    Start-Sleep -Seconds 5
+                    $delay = $delay + 5
                 } else {
                     Log-Message "${name} is not running" "WARNING"
                     Log-Message "Attempting to start: ${$executable}" "INFO"
