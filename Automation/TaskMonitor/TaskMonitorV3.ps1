@@ -24,6 +24,19 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 $host.UI.RawUI.WindowTitle = "Monitoring Script"
 
+# Get the current process ID
+$currentProcessId = $PID
+$scriptName = "TaskMonitorV3.ps1"
+# Check if any other process is running the same script
+$existingProcess = Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object {
+    $_.CommandLine -like "*$scriptName*" -and $_.ProcessId -ne $currentProcessId
+}
+# If such a process exists, exit the script
+if ($existingProcess) {
+    Write-Host "Another instance of '$scriptName' is already running. Exiting..."
+    exit
+}
+
 # Is process running
 function IsProcess {
     param (
