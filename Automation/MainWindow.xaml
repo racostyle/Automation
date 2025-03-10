@@ -60,7 +60,14 @@
 
         <Rectangle Name="recOverlay" Panel.ZIndex="1000" Fill="Black" Opacity=".5" Grid.RowSpan="9" Grid.ColumnSpan="4" Visibility="Hidden"></Rectangle>
 
-        <Label MouseDown="Label_MouseDown" Margin="29,0,0,0">Scripts Location:</Label>
+        <Label 
+            MouseDown="Label_MouseDown" 
+            Margin="2,2,2,2" 
+            VerticalAlignment="Stretch"
+            VerticalContentAlignment="Center"
+            HorizontalAlignment="Stretch" 
+            HorizontalContentAlignment="Right">Scripts Location:</Label>
+        
         <TextBox Grid.Row="0" Grid.Column="1" Name="tbScriptsLocation" Grid.ColumnSpan="3" IsReadOnly="True" MouseDoubleClick="OnTbScriptsLocation_MouseDoubleClick"/>
         <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap">If buttons are Green checks were ok an nothing is needed. If red click the corresponding button and the program will fix it for you.</TextBlock>
 
