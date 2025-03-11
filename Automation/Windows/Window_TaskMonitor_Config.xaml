@@ -60,17 +60,17 @@
         <Label Grid.Row="1" Grid.Column="0" Content="ExecutableName: " HorizontalAlignment="Right"/>
         <Label Grid.Row="3" Grid.Column="0" Content="Arguments: " HorizontalAlignment="Right"/>
         <Label Grid.Row="4" Grid.Column="0" Content="Priority: " HorizontalAlignment="Right"/>
+        <Label Grid.Row="5" Grid.Column="0" Content="Interval: " HorizontalAlignment="Right"/>
         <Label 
-            Grid.Row="5" 
-            Grid.Column="0" 
-            Grid.ColumnSpan="4" 
+            Grid.Row="2" 
             Content="Lower the priority the quicker TaskMonitor will execute executable in order. Leave default value (100)."
             HorizontalAlignment="Center" FontSize="10"/>
 
         <TextBox Name="tbBaseFolder" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"/>
         <TextBox Name="tbExecutableName" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3"/>
         <TextBox Name="tbArguments" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3"/>
-        <TextBox Name="tbPriority" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"/>
+        <TextBox Name="tbPriority" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="1" MaxLength="4" PreviewTextInput="OnNumericTextBox_PreviewTextInput"/>
+        <TextBox Name="tbInterval" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="1" MaxLength="6" PreviewTextInput="OnNumericTextBox_PreviewTextInput"/>
 
         <Button Name="btnCancel" Content="Cancel" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Background="IndianRed" Click="OnBtnCancel_Click"/>
         <Button Name="btnConfirmAndSave" Content="Confirm" Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Background="LightGreen" Click="OnBtnConfirmAndSave_Click"/>

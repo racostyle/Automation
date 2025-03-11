@@ -87,13 +87,23 @@ foreach ($configFile in $configFiles) {
     $configPath = Join-Path -Path $scriptDirectory -ChildPath $configFile
     $config = Get-Content $configPath -Force | ConvertFrom-Json
 
-    $BaseFolder = $config.BaseFolder
-    $ExecutableName = $config.ExecutableName
-    $Arguments = $config.Arguments
-    [int]$Priority = 0
+    try {
+        $BaseFolder = $config.BaseFolder
+        $ExecutableName = $config.ExecutableName
+        $Arguments = $config.Arguments
+        [int]$Priority = 0
+        [int]$Interval = 1
 
-    if ($config.PSObject.Properties.Name -contains 'Priority') {
-        $success = [int]::TryParse($config.Priority, [ref]$Priority)
+        if ($config.PSObject.Properties.Name -contains 'Priority') {
+            $success = [int]::TryParse($config.Priority, [ref]$Priority)
+        }
+
+        if ($config.PSObject.Properties.Name -contains 'Interval') {
+            $success = [int]::TryParse($config.Interval, [ref]$Interval)
+        }
+    } catch {
+        Write-Host "Problem with reading $configFile. Config will be skipped"
+        continue
     }
 
     $expectedExecutablePath = Join-Path -Path $BaseFolder -ChildPath $ExecutableName
@@ -128,6 +138,8 @@ foreach ($configFile in $configFiles) {
         WorkingDirectory = $WorkingDirectory
         Arguments        = $Arguments
         Priority         = $Priority
+        BaseInterval     = $Interval
+        ModInterval      = $Interval
     }
     $programsList += $programInfo
 }
@@ -184,11 +196,30 @@ foreach ($program in $programsList) {
     }
 }
 
-$runspacePool = [runspacefactory]::CreateRunspacePool(1, [Environment]::ProcessorCount)
-$runspacePool.Open()
-# An array to store the runspaces
-$runspaces = @()
+# Initialize the tick variable
+[int]$tick = 0
 
+# Create and configure the timer
+$timer = New-Object System.Timers.Timer
+$timer.Interval = 60000
+$timer.AutoReset = $true
+
+# Register an event for the timer's Elapsed event
+Register-ObjectEvent -InputObject $timer -EventName Elapsed -Action {
+    $global:tick++
+} | Out-Null
+
+# Start the timer
+$timer.Start()
+
+# Register a cleanup event for when the script exits
+Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
+    $timer.Stop()
+    $timer.Dispose()
+    Unregister-Event -SourceIdentifier * 
+}
+
+Write-Host ""
 $CheckInterval = 60
 
 #Execution
@@ -236,8 +267,6 @@ while ($true) {
                         Start-Process "${executable}" -ErrorAction Stop
                     }
                     Log-Message "Attempted to start ${name} using Start-Process." "INFO"
-                    Start-Sleep -Seconds 5
-                    $delay = $delay + 5
 
                     if (IsProcess $name) {
                         Log-Message "${name} started successfully." "INFO"
@@ -245,6 +274,8 @@ while ($true) {
                     else {
                         Log-Message "Failed to start ${name}: $_" "ERROR"
                     }
+                    Start-Sleep -Seconds 5
+                    $delay = $delay + 5
                 }
             }
         }

@@ -49,9 +49,13 @@ namespace Automation
 
         private void RepairConfigValues()
         {
-            if (string.IsNullOrEmpty(tbPriority.Text) || !int.TryParse(tbPriority.Text, out var result))
+            if (string.IsNullOrEmpty(tbPriority.Text) || !int.TryParse(tbPriority.Text, out var _))
             {
                 tbPriority.Text = "100";
+            }
+            if (string.IsNullOrEmpty(tbInterval.Text) || !int.TryParse(tbPriority.Text, out var _))
+            {
+                tbInterval.Text = "1";
             }
         }
 
@@ -88,6 +92,11 @@ namespace Automation
 
             tbBaseFolder.Text = Path.GetDirectoryName(file);
             tbExecutableName.Text = Path.GetFileName(file);
+        }
+
+        private void OnNumericTextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            e.Handled = !int.TryParse(e.Text, out _);
         }
     }
 }
