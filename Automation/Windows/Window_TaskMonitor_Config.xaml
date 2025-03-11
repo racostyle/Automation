@@ -6,11 +6,11 @@
         xmlns:local="clr-namespace:Automation"
         mc:Ignorable="d"
         Title="TaskMonitor Executables Configuration Editor" 
-        Height="250" 
+        Height="265" 
         Width="550" 
         Background="Black"
         MinWidth="550"
-        MinHeight="250"
+        MinHeight="265"
         WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -56,8 +56,8 @@
             Background="LightYellow"
             Click="OnBtnSearchForLocation_Click"/>
 
-        <Label Grid.Row="0" Grid.Column="0" Content="BaseFolder: " HorizontalAlignment="Right"/>
-        <Label Grid.Row="1" Grid.Column="0" Content="ExecutableName: " HorizontalAlignment="Right"/>
+        <Label Grid.Row="0" Grid.Column="0" Content="Base Folder: " HorizontalAlignment="Right"/>
+        <Label Grid.Row="1" Grid.Column="0" Content="Executable Name: " HorizontalAlignment="Right"/>
         <Label Grid.Row="3" Grid.Column="0" Content="Arguments: " HorizontalAlignment="Right"/>
         <Label Grid.Row="4" Grid.Column="0" Content="Priority: " HorizontalAlignment="Right"/>
         <Label Grid.Row="5" Grid.Column="0" Content="Interval: " HorizontalAlignment="Right"/>

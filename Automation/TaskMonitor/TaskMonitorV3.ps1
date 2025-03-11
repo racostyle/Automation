@@ -197,7 +197,7 @@ foreach ($program in $programsList) {
 }
 
 # Initialize the tick variable
-[int]$tick = 0
+[int]$tick = 1
 
 # Create and configure the timer
 $timer = New-Object System.Timers.Timer
@@ -220,6 +220,9 @@ Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
 }
 
 Write-Host ""
+Write-Host "Main Loop Started"
+Write-Host ""
+
 $CheckInterval = 60
 
 #Execution
@@ -232,12 +235,19 @@ while ($true) {
         continue
     } 
 
-    foreach ($program in $programsList) {
+    for ($i = 0; $i -lt $programsList.Count; $i++) {
+
+        if ($tick -ge $programsList[$i].ModInterval) {
+            $programsList[$i].ModInterval += $programsList[$i].BaseInterval
+        } else {
+            continue
+        }
+
         try {
-            $name = $program.ProgramName
-            $args = $program.Arguments
-            $workingDir = $program.WorkingDirectory
-            $executable = $program.ExecutableName
+            $name = $programsList[$i].ProgramName
+            $args = $programsList[$i].Arguments
+            $workingDir = $programsList[$i].WorkingDirectory
+            $executable = $programsList[$i].ExecutableName
             
             if (-not (IsProcess $name)) {
 
