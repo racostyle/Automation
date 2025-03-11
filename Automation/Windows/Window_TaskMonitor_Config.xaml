@@ -61,16 +61,38 @@
         <Label Grid.Row="3" Grid.Column="0" Content="Arguments: " HorizontalAlignment="Right"/>
         <Label Grid.Row="4" Grid.Column="0" Content="Priority: " HorizontalAlignment="Right"/>
         <Label Grid.Row="5" Grid.Column="0" Content="Interval: " HorizontalAlignment="Right"/>
-        <Label 
-            Grid.Row="2" 
-            Content="Lower the priority the quicker TaskMonitor will execute executable in order. Leave default value (100)."
-            HorizontalAlignment="Center" FontSize="10"/>
 
-        <TextBox Name="tbBaseFolder" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"/>
-        <TextBox Name="tbExecutableName" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3"/>
-        <TextBox Name="tbArguments" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3"/>
-        <TextBox Name="tbPriority" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="1" MaxLength="4" PreviewTextInput="OnNumericTextBox_PreviewTextInput"/>
-        <TextBox Name="tbInterval" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="1" MaxLength="6" PreviewTextInput="OnNumericTextBox_PreviewTextInput"/>
+        <TextBox Name="tbBaseFolder" 
+                 Grid.Row="0" Grid.Column="1" 
+                 Grid.ColumnSpan="3" 
+                 ToolTip="Base folder of executable or PowerShell script. Auto filled with 'Search For Executable' button'"/>
+        
+        <TextBox Name="tbExecutableName" 
+                 Grid.Row="1" 
+                 Grid.Column="1" 
+                 Grid.ColumnSpan="3" 
+                 ToolTip="Name of executable or PowerShell script. Auto filled with 'Search For Executable' button'"/>
+
+        <TextBox Name="tbArguments" 
+                 Grid.Row="3" Grid.Column="1" 
+                 Grid.ColumnSpan="3"
+                 ToolTip="Arguments depend on the executable/script's parsing and formatting requirements."/>
+
+        <TextBox Name="tbPriority" 
+                 Grid.Row="4" 
+                 Grid.Column="1" 
+                 Grid.ColumnSpan="1" 
+                 MaxLength="4" 
+                 ToolTip="Lower priority number make TaskMonitor execute the executable sooner. 0 is the fastest, default is 100. This is only needed when you specifically need something to run before other scripts\executables."
+                 PreviewTextInput="OnNumericTextBox_PreviewTextInput"/>
+        
+        <TextBox Name="tbInterval" 
+                 Grid.Row="5" 
+                 Grid.Column="1" 
+                 Grid.ColumnSpan="1" 
+                 MaxLength="6" 
+                 ToolTip="Specifies how often the script/executable runs. Interval is in minutes (e.g., 1 = 1 minute). Default is 1"
+                 PreviewTextInput="OnNumericTextBox_PreviewTextInput"/>
 
         <Button Name="btnCancel" Content="Cancel" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Background="IndianRed" Click="OnBtnCancel_Click"/>
         <Button Name="btnConfirmAndSave" Content="Confirm" Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Background="LightGreen" Click="OnBtnConfirmAndSave_Click"/>
