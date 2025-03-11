@@ -1,11 +1,8 @@
 ﻿using Automation.ConfigurationAdapter;
 using Automation.Utils;
-<<<<<<< HEAD
 using System;
 using System.Collections.Generic;
-=======
 using Automation.Windows;
->>>>>>> main
 using System.IO;
 using System.Security.Principal;
 using System.Text.Json;
@@ -44,13 +41,11 @@ namespace Automation
                 .Add_HandlerCheckBox()
                 .ConfigureToUsePrefixes(false)
                 .Build();
-<<<<<<< HEAD
+
 
             _deployer = new Deployer(new SimpleShellExecutor());
-
             _debugCounter = new DebugOptionsCounter();
-=======
->>>>>>> main
+
         }
 
         public static bool IsRunningAsAdministrator()
@@ -84,20 +79,11 @@ namespace Automation
 
             if (!CheckScriptsLocation())
             {
-<<<<<<< HEAD
                 var json = File.ReadAllText("defLocSettings.Json");
                 var settings = JsonSerializer.Deserialize<Dictionary<string, string>>( json);
 
                 tbScriptsLocation.Text = settings["DEFAULT_SCRIPTS_LOCATION"];
-=======
 
-                var commonPath = _deployer.GetCommonStartupFolderPath();
-                if (!string.IsNullOrEmpty(commonPath))
-                    tbCommonStartup.Text = commonPath;
-
-                tbScriptsLocation.Text = "C:\\Delivery\\Automation\\Scripts";
-
->>>>>>> main
                 if (!Directory.Exists(tbScriptsLocation.Text))
                 {
                     Directory.CreateDirectory(tbScriptsLocation.Text);
@@ -256,7 +242,7 @@ namespace Automation
         {
             if (_debugWindow == null)
             {
-                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, tbCommonStartup.Text);
+                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, _deployer.GetCommonStartupFolderPath());
                 _debugWindow.Closed += DebugWindow_Closed!;
                 _debugWindow.Show();
             }
