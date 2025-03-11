@@ -1,0 +1,104 @@
+﻿<Window x:Class="Automation.DeveloperOptionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Automation"
+        mc:Ignorable="d"
+        Title="DeveloperOptionsWindow"
+        Background="Black"
+        MinWidth="400"
+        MinHeight="250"
+        Width="400"
+        Height="250"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#1A1A1A"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="Black"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="#141414"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="#0F0F0F "/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <Rectangle 
+            Name="recOverlay" 
+            Panel.ZIndex="1000" 
+            Fill="Black" 
+            Opacity=".5" 
+            Grid.RowSpan="4" 
+            Grid.ColumnSpan="4" 
+            Visibility="Visible"></Rectangle>
+
+        <Button 
+            Grid.Row="0" 
+            Grid.Column="0" 
+            Grid.ColumnSpan="2" 
+            Name="btnOpenConfigsLocation"
+            Click="OnBtnOpenConfigsLocation_Click">Configs Location</Button>
+
+        <Button 
+            Grid.Row="0" 
+            Grid.Column="2" 
+            Grid.ColumnSpan="2" 
+            Name="btnOpenStartupLocation"
+            Click="OnBtnOpenStartupLocation_Click">Startup Location</Button>
+
+        <TextBlock 
+            Grid.Row="2" 
+            Grid.Column="0" 
+            Grid.ColumnSpan="4" 
+            TextWrapping="Wrap" 
+            VerticalAlignment="Center">This will update TaskMonitor, EasyScriptLauncher and settings. Checkbox 'Do Update' must be checked to update. It serves as a safety step.</TextBlock>
+
+        <Button 
+            Grid.Row="3" 
+            Grid.Column="1" 
+            Grid.ColumnSpan="3" 
+            Name="btnUpdate" 
+            Click="OnBtnUpdate_Click">Update</Button>
+
+        <CheckBox 
+            Grid.Row="3" 
+            Grid.Column="0" 
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center" 
+            Foreground="White" 
+            Content="Do Update " 
+            Name="cbhDoUpdate"/>
+    </Grid>
+</Window>

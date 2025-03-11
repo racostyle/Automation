@@ -2,11 +2,10 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-	<Version>1.0.3</Version>
-	<AssemblyInformationalVersion>1.0.3</AssemblyInformationalVersion>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+	<Version>1.0.6</Version>
+	<AssemblyInformationalVersion>1.0.6</AssemblyInformationalVersion>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
@@ -25,6 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="defaultsSettings.json">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="defLocSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Readme.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

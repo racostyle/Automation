@@ -1,7 +1,13 @@
 ﻿using Automation.ConfigurationAdapter;
 using Automation.Utils;
+<<<<<<< HEAD
+using System;
+using System.Collections.Generic;
+=======
 using Automation.Windows;
+>>>>>>> main
 using System.IO;
+using System.Security.Principal;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +20,7 @@ namespace Automation
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly DebugOptionsCounter _debugCounter;
         private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
         private readonly VisualTreeAdapter _visualTreeAdapter;
         private readonly Deployer _deployer;
@@ -21,7 +28,7 @@ namespace Automation
 
         public MainWindow()
         {
-            if (!Environment.IsPrivilegedProcess)
+            if (!IsRunningAsAdministrator())
             {
                 MessageBox.Show("Start this app as admin!");
                 Environment.Exit(0);
@@ -37,7 +44,24 @@ namespace Automation
                 .Add_HandlerCheckBox()
                 .ConfigureToUsePrefixes(false)
                 .Build();
+<<<<<<< HEAD
+
+            _deployer = new Deployer(new SimpleShellExecutor());
+
+            _debugCounter = new DebugOptionsCounter();
+=======
+>>>>>>> main
         }
+
+        public static bool IsRunningAsAdministrator()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+
 
         #region CLOSED & LOADED HANDLERS
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -55,13 +79,17 @@ namespace Automation
                 result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text);
                 ColorButton(result, btnSetupTaskMonitor);
 
-                cbhDoUpdate.IsChecked = false;
-
                 HideOverlay();
             }
 
             if (!CheckScriptsLocation())
             {
+<<<<<<< HEAD
+                var json = File.ReadAllText("defLocSettings.Json");
+                var settings = JsonSerializer.Deserialize<Dictionary<string, string>>( json);
+
+                tbScriptsLocation.Text = settings["DEFAULT_SCRIPTS_LOCATION"];
+=======
 
                 var commonPath = _deployer.GetCommonStartupFolderPath();
                 if (!string.IsNullOrEmpty(commonPath))
@@ -69,11 +97,20 @@ namespace Automation
 
                 tbScriptsLocation.Text = "C:\\Delivery\\Automation\\Scripts";
 
+>>>>>>> main
                 if (!Directory.Exists(tbScriptsLocation.Text))
                 {
                     Directory.CreateDirectory(tbScriptsLocation.Text);
-                    MessageBox.Show("Directory 'C:\\Delivery\\Automation\\Scripts' was created");
+                    MessageBox.Show($"Directory '{tbScriptsLocation.Text}' was created");
                 }
+
+                var recurringPath = Path.Combine(settings["DEFAULT_SCRIPTS_LOCATION"], settings["RECURRING_SCRIPTS_LOCATION"]);
+                if (!Directory.Exists(recurringPath))
+                {
+                    Directory.CreateDirectory(recurringPath);
+                    MessageBox.Show($"Directory '{recurringPath}' was created");
+                }
+
                 try
                 {
                     _deployer.ChangeScriptLauncherSettings(tbScriptsLocation.Text);
@@ -143,7 +180,6 @@ namespace Automation
             {
                 MessageBox.Show(ex.Message);
             }
-
         }
 
         private void OnBtnNewAutomationScript_Click(object sender, RoutedEventArgs e)
@@ -180,20 +216,6 @@ namespace Automation
 
             var result = _deployer.SetupTaskMonitor(tbScriptsLocation.Text);
             ColorButton(result, btnSetupTaskMonitor);
-            HideOverlay();
-        }
-
-
-        private async void OnBtnUpdate_Click(object sender, RoutedEventArgs e)
-        {
-            if (cbhDoUpdate.IsChecked == false)
-                return;
-
-            ShowOverlay();
-            var result = await _deployer.UpdateEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
-            ColorButton(result, btnSetupTaskMonitor);
-            ColorButton(result, btnSetupScripLauncher);
-            cbhDoUpdate.IsChecked = false;
             HideOverlay();
         }
 
@@ -284,6 +306,17 @@ namespace Automation
         private void HideOverlay()
         {
             recOverlay.Visibility = Visibility.Hidden;
+        }
+        #endregion
+
+        #region DEV OPTIONS
+        private void Label_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (_debugCounter.DoOpenWindow())
+            {
+                var window = new DeveloperOptionsWindow(_deployer, tbScriptsLocation.Text);
+                window.ShowDialog();
+            }
         }
         #endregion
     }

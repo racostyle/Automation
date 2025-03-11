@@ -1,5 +1,7 @@
 ﻿using Automation.ConfigurationAdapter;
 using Automation.Utils;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -22,34 +24,47 @@ namespace Automation
             _baseScriptsLocation = baseScriptsLocation;
             _configLocation = configLocation;
 
-            if (string.IsNullOrEmpty(_configLocation))
-                return;
-
-            this.Loaded += Window_TaskMonitor_Config_LoadedAsync;
+            this.Loaded += Window_TaskMonitor_Config_Loaded;
         }
 
-        private void Window_TaskMonitor_Config_LoadedAsync(object sender, RoutedEventArgs e)
+        private void Window_TaskMonitor_Config_Loaded(object sender, RoutedEventArgs e)
         {
-            try
+            if (!string.IsNullOrEmpty(_configLocation))
             {
-                var text = File.ReadAllText(_configLocation);
-                var json = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
+                try
+                {
+                    var text = File.ReadAllText(_configLocation);
+                    var json = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
 
-                _visualTreeAdapter.Unpack(this, json);
+                    _visualTreeAdapter.Unpack(this, json);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
             }
-            catch (Exception ex)
+            RepairConfigValues();
+        }
+
+        private void RepairConfigValues()
+        {
+            if (string.IsNullOrEmpty(tbPriority.Text) || !int.TryParse(tbPriority.Text, out var _))
             {
-                MessageBox.Show(ex.Message);
+                tbPriority.Text = "100";
+            }
+            if (string.IsNullOrEmpty(tbInterval.Text) || !int.TryParse(tbPriority.Text, out var _))
+            {
+                tbInterval.Text = "1";
             }
         }
 
-        private void tbCancel_Click(object sender, RoutedEventArgs e)
+        private void OnBtnCancel_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = true;
             this.Close();
         }
 
-        private void tbConfirmAndSave_Click(object sender, RoutedEventArgs e)
+        private void OnBtnConfirmAndSave_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(tbExecutableName.Text))
             {
@@ -68,7 +83,7 @@ namespace Automation
             this.Close();
         }
 
-        private void btnSearchForLocation_Click(object sender, RoutedEventArgs e)
+        private void OnBtnSearchForLocation_Click(object sender, RoutedEventArgs e)
         {
             var file = new FolderDialogWrapper().ShowFileDialog_ReturnPath();
             if (string.IsNullOrEmpty(file))
@@ -79,6 +94,11 @@ namespace Automation
 
             tbBaseFolder.Text = Path.GetDirectoryName(file);
             tbExecutableName.Text = Path.GetFileName(file);
+        }
+
+        private void OnNumericTextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            e.Handled = !int.TryParse(e.Text, out _);
         }
     }
 }

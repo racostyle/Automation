@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Windows;
 using System.Windows.Media;
 
 namespace Automation.ConfigurationAdapter
@@ -11,7 +13,7 @@ namespace Automation.ConfigurationAdapter
 
     public class VisualTreeAdapter
     {
-        private readonly string[] PREFIXES = ["tb", "tbl", "chb", "cbb", "rbtn"];
+        private readonly string[] PREFIXES = new string[] { "tb", "tbl", "chb", "cbb", "rbtn" };
 
         public bool SavedByAdapter { get; private set; } = false;
 
@@ -91,7 +93,8 @@ namespace Automation.ConfigurationAdapter
         public List<Visual> FetchAllVisuals(Visual visualTree)
         {
             var visuals = new List<Visual>();
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(visualTree); i++)
+            var count = VisualTreeHelper.GetChildrenCount(visualTree);
+            for (int i = 0; i < count; i++)
             {
                 Visual childVisual = (Visual)VisualTreeHelper.GetChild(visualTree, i);
                 visuals.Add(childVisual);
