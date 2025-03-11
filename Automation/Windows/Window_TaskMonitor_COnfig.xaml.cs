@@ -24,27 +24,26 @@ namespace Automation
             _baseScriptsLocation = baseScriptsLocation;
             _configLocation = configLocation;
 
-            if (string.IsNullOrEmpty(_configLocation))
-                return;
-
-            this.Loaded += Window_TaskMonitor_Config_LoadedAsync;
+            this.Loaded += Window_TaskMonitor_Config_Loaded;
         }
 
-        private void Window_TaskMonitor_Config_LoadedAsync(object sender, RoutedEventArgs e)
+        private void Window_TaskMonitor_Config_Loaded(object sender, RoutedEventArgs e)
         {
-            try
+            if (!string.IsNullOrEmpty(_configLocation))
             {
-                var text = File.ReadAllText(_configLocation);
-                var json = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
+                try
+                {
+                    var text = File.ReadAllText(_configLocation);
+                    var json = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
 
-                _visualTreeAdapter.Unpack(this, json);
-
-                RepairConfigValues();
+                    _visualTreeAdapter.Unpack(this, json);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
             }
-            catch (Exception ex) 
-            {
-                MessageBox.Show(ex.Message);
-            }
+            RepairConfigValues();
         }
 
         private void RepairConfigValues()

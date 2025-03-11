@@ -93,7 +93,8 @@ namespace Automation.ConfigurationAdapter
         public List<Visual> FetchAllVisuals(Visual visualTree)
         {
             var visuals = new List<Visual>();
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(visualTree); i++)
+            var count = VisualTreeHelper.GetChildrenCount(visualTree);
+            for (int i = 0; i < count; i++)
             {
                 Visual childVisual = (Visual)VisualTreeHelper.GetChild(visualTree, i);
                 visuals.Add(childVisual);

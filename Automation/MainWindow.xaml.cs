@@ -70,7 +70,6 @@ namespace Automation
                 result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text);
                 ColorButton(result, btnSetupTaskMonitor);
 
-
                 HideOverlay();
             }
 
@@ -160,7 +159,6 @@ namespace Automation
             {
                 MessageBox.Show(ex.Message);
             }
-
         }
 
         private void OnBtnNewAutomationScript_Click(object sender, RoutedEventArgs e)
