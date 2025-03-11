@@ -84,8 +84,11 @@ namespace Automation
                 {
                     Directory.CreateDirectory(tbScriptsLocation.Text);
                     MessageBox.Show($"Directory '{tbScriptsLocation.Text}' was created");
+                }
 
-                    var recurringPath = Path.Combine(settings["DEFAULT_SCRIPTS_LOCATION"], settings["RECURRING_SCRIPTS_LOCATION"]);
+                var recurringPath = Path.Combine(settings["DEFAULT_SCRIPTS_LOCATION"], settings["RECURRING_SCRIPTS_LOCATION"]);
+                if (!Directory.Exists(recurringPath))
+                {
                     Directory.CreateDirectory(recurringPath);
                     MessageBox.Show($"Directory '{recurringPath}' was created");
                 }
