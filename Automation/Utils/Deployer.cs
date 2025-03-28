@@ -41,9 +41,27 @@ namespace Automation.Utils
             return doesShortcutExist;
         }
 
-        public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
+        public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation, string environmentType, SettingsLoader scriptLoader)
         {
+            bool result = true;
             var commonStartup = GetCommonStartupFolderPath();
+            var currentUserStartup = GetCurrentUserStartupFolder();
+
+            if (environmentType.Trim().Equals("MULTI", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!File.Exists(Path.Combine(currentUserStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
+                    result = await CreateShortcut(scriptLoader, scriptsLocation, currentUserStartup);
+            }
+            else
+            {
+                if (!File.Exists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
+                    result = await CreateShortcut(scriptLoader, scriptsLocation, commonStartup);
+            }
+            return result;
+        }
+
+        private async Task<bool> CreateShortcut(SettingsLoader scriptLoader, string scriptsLocation, string commonStartup)
+        {
             if (!File.Exists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
             {
                 _shell.CreateShortcut(Directory.GetCurrentDirectory(), commonStartup, EASY_SCRIPT_LAUNCHER);
@@ -51,23 +69,14 @@ namespace Automation.Utils
             }
 
             var result = await CheckEasyScriptLauncher(scriptsLocation, scriptLoader);
-
-            return true;
+            return result;
         }
 
-        public async Task<bool> UpdateEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
+        public async Task<bool> UpdateEasyScriptLauncher(string scriptsLocation, string environmentType, SettingsLoader scriptLoader)
         {
             var settings = Path.Combine(Directory.GetCurrentDirectory(), $"{EASY_SCRIPT_LAUNCHER}_Settings.json");
             if (File.Exists(settings))
                 File.Delete(settings);
-
-            var startupPath = GetCommonStartupFolderPath();
-            var shortcuts = Directory.GetFiles(startupPath, "*").Where(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase)).ToArray();
-            if (shortcuts.Any())
-            {
-                foreach (var item in shortcuts)
-                    File.Delete(item);
-            }
 
             var monitors = Directory.GetFiles(scriptsLocation, "*").Where(x => x.Contains(TASK_MONITOR, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (monitors.Any())
@@ -77,7 +86,7 @@ namespace Automation.Utils
             }
 
             var resultMonitor = SetupTaskMonitor(scriptsLocation);
-            var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation, scriptLoader);
+            var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation, environmentType, scriptLoader);
 
             return resultlauncher == resultMonitor;
         }
@@ -113,6 +122,11 @@ namespace Automation.Utils
             var programData = Environment.GetEnvironmentVariable("ProgramData");
             var commonStartupPath = Path.Combine(programData, @"Microsoft\Windows\Start Menu\Programs\Startup");
             return commonStartupPath;
+        }
+
+        public string GetCurrentUserStartupFolder()
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.Startup);
         }
 
         public bool CheckTaskMonitor(string scriptsLocation)

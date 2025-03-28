@@ -11,12 +11,14 @@ namespace Automation
     {
         private readonly Deployer _deployer;
         private readonly string _scriptsLocation;
+        private readonly string _environmentType;
 
-        public DeveloperOptionsWindow(Deployer deployer, string scriptsLocation)
+        public DeveloperOptionsWindow(Deployer deployer, string scriptsLocation, string environmentType)
         {
             InitializeComponent();
             _deployer = deployer;
             _scriptsLocation = scriptsLocation;
+            _environmentType = environmentType;
             HideOverlay();
         }
 
@@ -26,7 +28,7 @@ namespace Automation
                 return;
 
             ShowOverlay();
-            var result = await _deployer.UpdateEasyScriptLauncher(_scriptsLocation, new ConfigLib.SettingsLoader());
+            var result = await _deployer.UpdateEasyScriptLauncher(_scriptsLocation, _environmentType, new ConfigLib.SettingsLoader());
             cbhDoUpdate.IsChecked = false;
             HideOverlay();
         }

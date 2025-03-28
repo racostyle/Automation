@@ -27,9 +27,6 @@
     <None Update="defaultsSettings.json">
       <Generator>MSBuild:Compile</Generator>
     </None>
-    <None Update="defLocSettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="Readme.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
