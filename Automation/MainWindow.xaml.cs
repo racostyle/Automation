@@ -19,6 +19,7 @@ namespace Automation
         private readonly Deployer _deployer;
         private readonly SettingsHandler _settingsHandler;
         private Window _debugWindow;
+        private EnvironmentHandler _environmentHandler;
 
         public MainWindow()
         {
@@ -31,10 +32,7 @@ namespace Automation
             InitializeComponent();
 
             _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
-            _deployer = new Deployer(new SimpleShellExecutor());
-
-            _deployer = new Deployer(new SimpleShellExecutor());
-            _debugCounter = new DebugOptionsCounter();
+            _deployer = new Deployer(new SimpleShellExecutor(), new StartupLocationsHandler());
 
             _settingsHandler = new SettingsHandler();
         }
@@ -71,6 +69,8 @@ namespace Automation
 
             if (!CheckScriptsLocation())
                 CreateScriptsLocations();
+
+            _environmentHandler = new EnvironmentHandler(tbEnvironmentType.Text);
 
             LoadConfigs();
             HideOverlay();
@@ -165,7 +165,7 @@ namespace Automation
         private async void OnBtnSetupScripLauncher_Click(object sender, RoutedEventArgs e)
         {
             ShowOverlay();
-            var result = await _deployer.SetupEasyScriptLauncher(tbScriptsLocation.Text, tbEnvironmentType.Text, new ConfigLib.SettingsLoader());
+            var result = await _deployer.SetupEasyScriptLauncher(tbScriptsLocation.Text, _environmentHandler, new ConfigLib.SettingsLoader());
             ColorButton(result, btnSetupScripLauncher);
             HideOverlay();
         }
@@ -220,7 +220,7 @@ namespace Automation
         {
             if (_debugWindow == null)
             {
-                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, _deployer.GetCommonStartupFolderPath());
+                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, new StartupLocationsHandler());
                 _debugWindow.Closed += DebugWindow_Closed!;
                 _debugWindow.Show();
             }
@@ -251,6 +251,7 @@ namespace Automation
             {
                 SetupDefaultValues("MULTI");
             }
+            _environmentHandler = new EnvironmentHandler(tbEnvironmentType.Text);
         }
 
         private void SetupDefaultValues(string environmentType)
@@ -322,7 +323,7 @@ namespace Automation
         {
             if (_debugCounter.DoOpenWindow())
             {
-                var window = new DeveloperOptionsWindow(_deployer, tbScriptsLocation.Text, tbEnvironmentType.Text);
+                var window = new DeveloperOptionsWindow(_deployer, tbScriptsLocation.Text, _environmentHandler, new StartupLocationsHandler());
                 CenterChildOnInParent(window);
                 window.ShowDialog();
             }

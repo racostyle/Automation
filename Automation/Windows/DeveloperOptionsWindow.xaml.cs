@@ -11,14 +11,17 @@ namespace Automation
     {
         private readonly Deployer _deployer;
         private readonly string _scriptsLocation;
+        private readonly EnvironmentHandler _environmentHandler;
+        private readonly StartupLocationsHandler _startupLocationsHandler;
         private readonly string _environmentType;
 
-        public DeveloperOptionsWindow(Deployer deployer, string scriptsLocation, string environmentType)
+        public DeveloperOptionsWindow(Deployer deployer, string scriptsLocation, EnvironmentHandler environmentHandler, StartupLocationsHandler startupLocationsHandler)
         {
             InitializeComponent();
             _deployer = deployer;
             _scriptsLocation = scriptsLocation;
-            _environmentType = environmentType;
+            _environmentHandler = environmentHandler;
+            _startupLocationsHandler = startupLocationsHandler;
             HideOverlay();
         }
 
@@ -28,7 +31,7 @@ namespace Automation
                 return;
 
             ShowOverlay();
-            var result = await _deployer.UpdateEasyScriptLauncher(_scriptsLocation, _environmentType, new ConfigLib.SettingsLoader());
+            var result = await _deployer.UpdateEasyScriptLauncher(_scriptsLocation, _environmentHandler, new ConfigLib.SettingsLoader());
             cbhDoUpdate.IsChecked = false;
             HideOverlay();
         }
@@ -55,7 +58,7 @@ namespace Automation
         {
             var process = new Process();
             process.StartInfo.FileName = "explorer.exe";
-            process.StartInfo.Arguments = _deployer.GetCommonStartupFolderPath();
+            process.StartInfo.Arguments = _startupLocationsHandler.GetCommonStartupFolderPath();
             process.Start();
         }
     }

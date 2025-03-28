@@ -11,13 +11,14 @@ namespace Automation.Utils
     public class Deployer
     {
         private readonly SimpleShellExecutor _shell;
-
+        private readonly StartupLocationsHandler _startupLocationsHandler;
         private readonly string EASY_SCRIPT_LAUNCHER = "EasyScriptLauncher";
         private readonly string TASK_MONITOR = "TaskMonitor";
 
-        public Deployer(SimpleShellExecutor shell)
+        public Deployer(SimpleShellExecutor shell, StartupLocationsHandler startupLocationsHandler)
         {
             _shell = shell;
+            _startupLocationsHandler = startupLocationsHandler;
         }
 
         #region EASY SCRIPT LAUNCHER
@@ -35,25 +36,25 @@ namespace Automation.Utils
             ChangeScriptLauncherSettings(scriptsLocation);
 
             //Check for Shortcut
-            var startupPath = GetCommonStartupFolderPath();
+            var startupPath = _startupLocationsHandler.GetCommonStartupFolderPath();
             var doesShortcutExist = Directory.GetFiles(startupPath, "*").Any(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase));
 
             return doesShortcutExist;
         }
 
-        public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation, string environmentType, SettingsLoader scriptLoader)
+        public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation, EnvironmentHandler environmentHandler, SettingsLoader scriptLoader)
         {
             bool result = true;
-            var commonStartup = GetCommonStartupFolderPath();
-            var currentUserStartup = GetCurrentUserStartupFolder();
 
-            if (environmentType.Trim().Equals("MULTI", StringComparison.OrdinalIgnoreCase))
+            if (environmentHandler.IsMultiuser)
             {
+                var currentUserStartup = _startupLocationsHandler.GetCurrentUserStartupFolder();
                 if (!File.Exists(Path.Combine(currentUserStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
                     result = await CreateShortcut(scriptLoader, scriptsLocation, currentUserStartup);
             }
             else
             {
+                var commonStartup = _startupLocationsHandler.GetCommonStartupFolderPath();
                 if (!File.Exists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
                     result = await CreateShortcut(scriptLoader, scriptsLocation, commonStartup);
             }
@@ -72,7 +73,7 @@ namespace Automation.Utils
             return result;
         }
 
-        public async Task<bool> UpdateEasyScriptLauncher(string scriptsLocation, string environmentType, SettingsLoader scriptLoader)
+        public async Task<bool> UpdateEasyScriptLauncher(string scriptsLocation, EnvironmentHandler environmentHandler, SettingsLoader scriptLoader)
         {
             var settings = Path.Combine(Directory.GetCurrentDirectory(), $"{EASY_SCRIPT_LAUNCHER}_Settings.json");
             if (File.Exists(settings))
@@ -86,7 +87,7 @@ namespace Automation.Utils
             }
 
             var resultMonitor = SetupTaskMonitor(scriptsLocation);
-            var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation, environmentType, scriptLoader);
+            var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation, environmentHandler, scriptLoader);
 
             return resultlauncher == resultMonitor;
         }
@@ -117,18 +118,6 @@ namespace Automation.Utils
         #endregion
 
         #region TASK MONITOR
-        public string GetCommonStartupFolderPath()
-        {
-            var programData = Environment.GetEnvironmentVariable("ProgramData");
-            var commonStartupPath = Path.Combine(programData, @"Microsoft\Windows\Start Menu\Programs\Startup");
-            return commonStartupPath;
-        }
-
-        public string GetCurrentUserStartupFolder()
-        {
-            return Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-        }
-
         public bool CheckTaskMonitor(string scriptsLocation)
         {
             var basePath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);
