@@ -13,13 +13,15 @@ namespace Automation.Windows
         private readonly Window _parent;
         private readonly string _scriptsLocation;
         private readonly StartupLocationsHandler _startupLocationsHandler;
+        private readonly EnvironmentHandler _environmentHandler;
 
-        public DebugWindow(Window parent, string scriptsLocation, StartupLocationsHandler startupLocationsHandler)
+        public DebugWindow(Window parent, string scriptsLocation, StartupLocationsHandler startupLocationsHandler, EnvironmentHandler environmentHandler)
         {
             InitializeComponent();
             _parent = parent;
             _scriptsLocation = scriptsLocation;
             _startupLocationsHandler = startupLocationsHandler;
+            _environmentHandler = environmentHandler;
             _parent.LocationChanged += OnParent_LocationChanged;
             SetPosition();
         }
@@ -43,9 +45,16 @@ namespace Automation.Windows
 
         private void tbOpenStartup_Click(object sender, RoutedEventArgs e)
         {
-            if (Directory.Exists(_scriptsLocation))
+            if (_environmentHandler.IsSingleUser)
+            {
+                if (Directory.Exists(_startupLocationsHandler.GetCommonStartupFolderPath()))
                 Process.Start("explorer.exe", _startupLocationsHandler.GetCommonStartupFolderPath());
+            }
+            else
+            {
+                if (Directory.Exists(_startupLocationsHandler.GetCurrentUserStartupFolder()))
+                    Process.Start("explorer.exe", _startupLocationsHandler.GetCurrentUserStartupFolder());
+            }
         }
-
     }
 }

@@ -33,7 +33,7 @@ namespace Automation
 
             _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
             _deployer = new Deployer(new SimpleShellExecutor(), new StartupLocationsHandler());
-
+            _debugCounter = new DebugOptionsCounter();
             _settingsHandler = new SettingsHandler();
         }
 
@@ -220,7 +220,7 @@ namespace Automation
         {
             if (_debugWindow == null)
             {
-                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, new StartupLocationsHandler());
+                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, new StartupLocationsHandler(), _environmentHandler);
                 _debugWindow.Closed += DebugWindow_Closed!;
                 _debugWindow.Show();
             }
@@ -252,6 +252,7 @@ namespace Automation
                 SetupDefaultValues("MULTI");
             }
             _environmentHandler = new EnvironmentHandler(tbEnvironmentType.Text);
+            LoadConfigs();
         }
 
         private void SetupDefaultValues(string environmentType)
