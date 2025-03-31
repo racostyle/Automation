@@ -86,7 +86,7 @@ namespace Automation.Utils
                     File.Delete(item);
             }
 
-            var resultMonitor = SetupTaskMonitor(scriptsLocation);
+            var resultMonitor = SetupTaskMonitor(scriptsLocation, environmentHandler);
             var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation, environmentHandler, scriptLoader);
 
             return resultlauncher == resultMonitor;
@@ -118,7 +118,7 @@ namespace Automation.Utils
         #endregion
 
         #region TASK MONITOR
-        public bool CheckTaskMonitor(string scriptsLocation)
+        public bool CheckTaskMonitor(string scriptsLocation, EnvironmentHandler _environmentHandler)
         {
             var basePath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);
             var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
@@ -133,22 +133,28 @@ namespace Automation.Utils
             return false;
         }
 
-        public bool SetupTaskMonitor(string scriptsLocation)
+        public bool SetupTaskMonitor(string scriptsLocation, EnvironmentHandler environmentHandler)
         {
-            var programName = "TaskMonitor";
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), programName);
-            var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{programName}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
+            var basePath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);
+            var filePath = Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
-            if (string.IsNullOrEmpty(file))
-                throw new Exception($"FatalError: {programName} could not be found. Rebuild or download the app again!");
+            if (string.IsNullOrEmpty(filePath))
+                throw new Exception($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
 
-            var path = Path.Combine(scriptsLocation, file);
+            var deployedMonitor = Directory.GetFiles(scriptsLocation, "*.ps1")
+                .Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+            foreach (var monitor in deployedMonitor)
+                File.Delete(monitor);
+
+
+            var path = DetermineFileName(filePath, scriptsLocation, environmentHandler);
             if (File.Exists(path))
                 return true;
 
             try
             {
-                File.Copy(Path.Combine(Path.Combine(basePath, file)), path, true);
+                File.Copy(Path.Combine(Path.Combine(basePath, filePath)), path, true);
             }
             catch
             {
@@ -156,6 +162,17 @@ namespace Automation.Utils
             }
 
             return true;
+        }
+
+        private string DetermineFileName(string filePath, string scriptsLocation, EnvironmentHandler environmentHandler)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+            var extension = Path.GetExtension(filePath);
+
+            if (environmentHandler.IsSingleUser)
+                return Path.Combine(scriptsLocation, filePath);
+            else
+                return Path.Combine(scriptsLocation, $"{fileName}_{environmentHandler.ProfileName}{extension}");
         }
         #endregion
     }

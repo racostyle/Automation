@@ -56,7 +56,7 @@ namespace Automation
                 var result = await _deployer.CheckEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
                 ColorButton(result, btnSetupScripLauncher);
 
-                result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text);
+                result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text, _environmentHandler);
                 ColorButton(result, btnSetupTaskMonitor);
 
                 HideOverlay();
@@ -176,7 +176,7 @@ namespace Automation
             if (!BaseScriptLocationSafetyCheck())
                 return;
 
-            var result = _deployer.SetupTaskMonitor(tbScriptsLocation.Text);
+            var result = _deployer.SetupTaskMonitor(tbScriptsLocation.Text, _environmentHandler);
             ColorButton(result, btnSetupTaskMonitor);
             HideOverlay();
         }
