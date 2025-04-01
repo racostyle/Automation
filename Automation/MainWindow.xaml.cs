@@ -16,7 +16,7 @@ namespace Automation
     {
         private readonly DebugOptionsCounter _debugCounter;
         private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
-        private readonly Deployer _deployer;
+        private readonly DeployHandler _deployer;
         private readonly SettingsHandler _settingsHandler;
         private Window _debugWindow;
         private EnvironmentHandler _environmentHandler;
@@ -32,7 +32,7 @@ namespace Automation
             InitializeComponent();
 
             _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
-            _deployer = new Deployer(new SimpleShellExecutor(), new StartupLocationsHandler());
+            _deployer = new DeployHandler(new SimpleShellExecutor(), new StartupLocationsHandler());
             _debugCounter = new DebugOptionsCounter();
             _settingsHandler = new SettingsHandler();
         }
@@ -50,17 +50,7 @@ namespace Automation
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             if (File.Exists(_settingsHandler.SETTINGS))
-            {
                 _settingsHandler.Unpack(this);
-
-                var result = await _deployer.CheckEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
-                ColorButton(result, btnSetupScripLauncher);
-
-                result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text, _environmentHandler);
-                ColorButton(result, btnSetupTaskMonitor);
-
-                HideOverlay();
-            }
             else
             {
                 SetupEnvironment();
@@ -73,6 +63,13 @@ namespace Automation
             _environmentHandler = new EnvironmentHandler(tbEnvironmentType.Text);
 
             LoadConfigs();
+
+            var result = await _deployer.CheckEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader(), _environmentHandler);
+            ColorButton(result, btnSetupScripLauncher);
+
+            result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text, _environmentHandler);
+            ColorButton(result, btnSetupTaskMonitor);
+
             HideOverlay();
         }
 
@@ -93,7 +90,7 @@ namespace Automation
 
             try
             {
-                _deployer.ChangeScriptLauncherSettings(tbScriptsLocation.Text);
+                _deployer.CheckScriptLauncherSettings(tbScriptsLocation.Text);
                 if (!_settingsHandler.Pack(this))
                     MessageBox.Show("Could not create config!");
             }
@@ -193,7 +190,7 @@ namespace Automation
             if (Directory.Exists(dialogResult))
             {
                 tbScriptsLocation.Text = dialogResult;
-                _deployer.ChangeScriptLauncherSettings(tbScriptsLocation.Text);
+                _deployer.CheckScriptLauncherSettings(tbScriptsLocation.Text);
                 if (!_settingsHandler.Pack(this))
                     MessageBox.Show("Could not create config!");
                 else

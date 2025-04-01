@@ -8,32 +8,59 @@ using System.Windows;
 
 namespace Automation.Utils
 {
-    public class Deployer
+    public class DeployHandler
     {
         private readonly SimpleShellExecutor _shell;
         private readonly StartupLocationsHandler _startupLocationsHandler;
         private readonly string EASY_SCRIPT_LAUNCHER = "EasyScriptLauncher";
         private readonly string TASK_MONITOR = "TaskMonitor";
 
-        public Deployer(SimpleShellExecutor shell, StartupLocationsHandler startupLocationsHandler)
+        public DeployHandler(SimpleShellExecutor shell, StartupLocationsHandler startupLocationsHandler)
         {
             _shell = shell;
             _startupLocationsHandler = startupLocationsHandler;
         }
 
         #region EASY SCRIPT LAUNCHER
-        public async Task<bool> CheckEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
+        public async Task<bool> CheckEasyScriptLauncher(string scriptsLocation, SettingsLoader settingsLoader, EnvironmentHandler environmentHandler)
         {
-            //Check Settings
-            var settings = $"{EASY_SCRIPT_LAUNCHER}_Settings.json";
+            var basePath = GetBaseEasyScriptLauncherPath(scriptsLocation);
+            var pathToSettings = GetEasyScriptLauncherSettingsPath(scriptsLocation);
 
-            if (!File.Exists(settings))
+            ////Check Launcher
+            //if (!Directory.Exists(basePath))
+            //    Directory.CreateDirectory(basePath);
+
+            //var files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*", SearchOption.TopDirectoryOnly)
+            //    .Where(x => Path.GetFileNameWithoutExtension(x)
+            //        .Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase) || Path.GetFileNameWithoutExtension(x).Contains("ConfigLib", StringComparison.OrdinalIgnoreCase))
+            //    .ToArray();
+
+            //foreach (var file in files)
+            //{
+            //    var newFile = Path.Combine(basePath, Path.GetFileName(file));
+            //    if (File.Exists(newFile))
+            //    {
+            //        var fbase = new FileInfo(file);
+            //        var fnew = new FileInfo(newFile);
+            //        if (fbase.LastWriteTime != fnew.LastWriteTime)
+            //            File.Copy(file, newFile, true);
+            //    }
+            //    else
+            //    {
+            //        File.Copy(file, newFile);
+            //    }
+            //}
+
+            //Check Settings
+            if (!File.Exists(pathToSettings))
             {
-                scriptLoader.LoadSettings(Path.Combine(Directory.GetCurrentDirectory(), settings));
+                var settings = settingsLoader.LoadSettings(pathToSettings);
+                settingsLoader.SaveSettings(pathToSettings, settings);
                 await Task.Delay(200);
             }
 
-            ChangeScriptLauncherSettings(scriptsLocation);
+            CheckScriptLauncherSettings(scriptsLocation);
 
             //Check for Shortcut
             var startupPath = _startupLocationsHandler.GetCommonStartupFolderPath();
@@ -53,12 +80,12 @@ namespace Automation.Utils
                 startup = _startupLocationsHandler.GetCommonStartupFolderPath();
 
             if (!File.Exists(Path.Combine(startup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
-                result = await CreateShortcut(scriptLoader, scriptsLocation, startup);
+                result = await CreateShortcut(scriptLoader, scriptsLocation, startup, environmentHandler);
 
             return result;
         }
 
-        private async Task<bool> CreateShortcut(SettingsLoader scriptLoader, string scriptsLocation, string commonStartup)
+        private async Task<bool> CreateShortcut(SettingsLoader scriptLoader, string scriptsLocation, string commonStartup, EnvironmentHandler environmentHandler)
         {
             if (!File.Exists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
             {
@@ -66,7 +93,7 @@ namespace Automation.Utils
                 await Task.Delay(1000);
             }
 
-            var result = await CheckEasyScriptLauncher(scriptsLocation, scriptLoader);
+            var result = await CheckEasyScriptLauncher(scriptsLocation, scriptLoader, environmentHandler);
             return result;
         }
 
@@ -83,34 +110,46 @@ namespace Automation.Utils
                     File.Delete(item);
             }
 
-            var resultMonitor = SetupOrUpdateTaskMonitor(scriptsLocation, environmentHandler);
-            var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation, environmentHandler, scriptLoader);
+            var resultLauncher = await SetupEasyScriptLauncher(scriptsLocation, environmentHandler, scriptLoader);
 
-            return resultlauncher == resultMonitor;
+            return resultLauncher;
         }
 
-        public bool ChangeScriptLauncherSettings(string scriptsLocation)
+        public bool CheckScriptLauncherSettings(string scriptsLocation)
         {
-            var settings = $"{EASY_SCRIPT_LAUNCHER}_Settings.json";
-
-            if (!File.Exists(settings))
+            var pathToSettings = GetEasyScriptLauncherSettingsPath(scriptsLocation);
+            if (!File.Exists(pathToSettings))
                 return false;
 
             try
             {
-                var text = File.ReadAllText(settings);
+                var text = File.ReadAllText(pathToSettings);
                 var config = JsonSerializer.Deserialize<Config>(text);
                 config.ScriptsFolder = scriptsLocation;
 
                 text = JsonSerializer.Serialize(config);
-                File.WriteAllText(settings, text);
+                File.WriteAllText(pathToSettings, text);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, settings);
+                MessageBox.Show(ex.Message, pathToSettings);
                 return false;
             }
             return true;
+        }
+
+        private string GetEasyScriptLauncherSettingsPath(string scriptsLocation)
+        {
+            var settingsName = $"{EASY_SCRIPT_LAUNCHER}_Settings.json";
+            var basePath = GetBaseEasyScriptLauncherPath(scriptsLocation);
+            return Path.Combine(basePath, settingsName);
+        }
+
+        private string GetBaseEasyScriptLauncherPath(string scriptsLocation)
+        {
+            //var root = Path.GetFullPath(Path.GetFullPath(Path.Combine(scriptsLocation, @"..")));
+            var root = Directory.GetCurrentDirectory();
+            return Path.Combine(root, EASY_SCRIPT_LAUNCHER);
         }
         #endregion
 
@@ -172,7 +211,7 @@ namespace Automation.Utils
             {
                 var baseMonitor = new FileInfo(baseMonitorPath);
                 var newMonitor = new FileInfo(scriptsMonitorPath);
-                
+
                 if (baseMonitor.LastWriteTime != newMonitor.LastWriteTime)
                     return true;
 

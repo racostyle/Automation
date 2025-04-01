@@ -9,13 +9,13 @@ namespace Automation
     /// </summary>
     public partial class DeveloperOptionsWindow : Window
     {
-        private readonly Deployer _deployer;
+        private readonly DeployHandler _deployer;
         private readonly string _scriptsLocation;
         private readonly EnvironmentHandler _environmentHandler;
         private readonly StartupLocationsHandler _startupLocationsHandler;
         private readonly string _environmentType;
 
-        public DeveloperOptionsWindow(Deployer deployer, string scriptsLocation, EnvironmentHandler environmentHandler, StartupLocationsHandler startupLocationsHandler)
+        public DeveloperOptionsWindow(DeployHandler deployer, string scriptsLocation, EnvironmentHandler environmentHandler, StartupLocationsHandler startupLocationsHandler)
         {
             InitializeComponent();
             _deployer = deployer;

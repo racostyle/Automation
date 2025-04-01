@@ -34,10 +34,13 @@ namespace ConfigLib
                 LoadProfile = false,
                 DelayInMils = 0
             };
+            return config;
+        }
+
+        public void SaveSettings(string settingsFile, Config config)
+        {
             var json = JsonSerializer.Serialize(config);
             File.WriteAllText(settingsFile, json);
-
-            return config;
         }
     }
 }
