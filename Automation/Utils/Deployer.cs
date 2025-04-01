@@ -45,19 +45,16 @@ namespace Automation.Utils
         public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation, EnvironmentHandler environmentHandler, SettingsLoader scriptLoader)
         {
             bool result = true;
+            string startup = string.Empty;
 
             if (environmentHandler.IsMultiuser)
-            {
-                var currentUserStartup = _startupLocationsHandler.GetCurrentUserStartupFolder();
-                if (!File.Exists(Path.Combine(currentUserStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
-                    result = await CreateShortcut(scriptLoader, scriptsLocation, currentUserStartup);
-            }
+                startup = _startupLocationsHandler.GetCurrentUserStartupFolder();
             else
-            {
-                var commonStartup = _startupLocationsHandler.GetCommonStartupFolderPath();
-                if (!File.Exists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
-                    result = await CreateShortcut(scriptLoader, scriptsLocation, commonStartup);
-            }
+                startup = _startupLocationsHandler.GetCommonStartupFolderPath();
+
+            if (!File.Exists(Path.Combine(startup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
+                result = await CreateShortcut(scriptLoader, scriptsLocation, startup);
+
             return result;
         }
 
@@ -86,7 +83,7 @@ namespace Automation.Utils
                     File.Delete(item);
             }
 
-            var resultMonitor = SetupTaskMonitor(scriptsLocation, environmentHandler);
+            var resultMonitor = SetupOrUpdateTaskMonitor(scriptsLocation, environmentHandler);
             var resultlauncher = await SetupEasyScriptLauncher(scriptsLocation, environmentHandler, scriptLoader);
 
             return resultlauncher == resultMonitor;
@@ -118,43 +115,38 @@ namespace Automation.Utils
         #endregion
 
         #region TASK MONITOR
-        public bool CheckTaskMonitor(string scriptsLocation, EnvironmentHandler _environmentHandler)
+        public bool CheckTaskMonitor(string scriptsLocation, EnvironmentHandler environmentHandler)
         {
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);
-            var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
+            var deployedMonitors = Directory.GetFiles(scriptsLocation, "*.ps1", SearchOption.AllDirectories)
+                           .Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase))
+                           .ToArray();
 
-            if (string.IsNullOrEmpty(file))
-                throw new Exception($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
+            var result = deployedMonitors.Any();
+            if (result)
+                SetupOrUpdateTaskMonitor(scriptsLocation, environmentHandler);
 
-            var path = Path.Combine(scriptsLocation, Path.GetFileName(file));
-            if (File.Exists(path))
-                return true;
-
-            return false;
+            return result;
         }
 
-        public bool SetupTaskMonitor(string scriptsLocation, EnvironmentHandler environmentHandler)
+        public bool SetupOrUpdateTaskMonitor(string scriptsLocation, EnvironmentHandler environmentHandler)
         {
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);
-            var filePath = Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            var baseMonitorPath = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.ps1", SearchOption.AllDirectories)
+                .Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase))
+                .FirstOrDefault();
 
-            if (string.IsNullOrEmpty(filePath))
+            if (string.IsNullOrEmpty(baseMonitorPath))
                 throw new Exception($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
 
-            var deployedMonitor = Directory.GetFiles(scriptsLocation, "*.ps1")
-                .Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).ToArray();
+            var scriptsMonitorPath = DetermineNewFileName(baseMonitorPath, scriptsLocation, environmentHandler);
 
-            foreach (var monitor in deployedMonitor)
-                File.Delete(monitor);
-
-
-            var path = DetermineFileName(filePath, scriptsLocation, environmentHandler);
-            if (File.Exists(path))
+            if (!IsTaskMonitorUpdateRequired(baseMonitorPath, scriptsMonitorPath))
                 return true;
+            else
+                DeleteAllMonitorsInScriptsLocation(scriptsLocation);
 
             try
             {
-                File.Copy(Path.Combine(Path.Combine(basePath, filePath)), path, true);
+                File.Copy(baseMonitorPath, scriptsMonitorPath, true);
             }
             catch
             {
@@ -164,7 +156,32 @@ namespace Automation.Utils
             return true;
         }
 
-        private string DetermineFileName(string filePath, string scriptsLocation, EnvironmentHandler environmentHandler)
+        private void DeleteAllMonitorsInScriptsLocation(string scriptsLocation)
+        {
+            var deployedMonitors = Directory.GetFiles(scriptsLocation, "*.ps1")
+                            .Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase))
+                            .ToArray();
+
+            foreach (var monitor in deployedMonitors)
+                File.Delete(monitor);
+        }
+
+        private bool IsTaskMonitorUpdateRequired(string baseMonitorPath, string scriptsMonitorPath)
+        {
+            if (File.Exists(scriptsMonitorPath))
+            {
+                var baseMonitor = new FileInfo(baseMonitorPath);
+                var newMonitor = new FileInfo(scriptsMonitorPath);
+                
+                if (baseMonitor.LastWriteTime != newMonitor.LastWriteTime)
+                    return true;
+
+                return false;
+            }
+            return true;
+        }
+
+        private string DetermineNewFileName(string filePath, string scriptsLocation, EnvironmentHandler environmentHandler)
         {
             var fileName = Path.GetFileNameWithoutExtension(filePath);
             var extension = Path.GetExtension(filePath);

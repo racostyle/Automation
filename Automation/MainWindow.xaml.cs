@@ -176,7 +176,7 @@ namespace Automation
             if (!BaseScriptLocationSafetyCheck())
                 return;
 
-            var result = _deployer.SetupTaskMonitor(tbScriptsLocation.Text, _environmentHandler);
+            var result = _deployer.SetupOrUpdateTaskMonitor(tbScriptsLocation.Text, _environmentHandler);
             ColorButton(result, btnSetupTaskMonitor);
             HideOverlay();
         }
