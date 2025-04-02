@@ -39,8 +39,16 @@ namespace ConfigLib
 
         public void SaveSettings(string settingsFile, Config config)
         {
-            var json = JsonSerializer.Serialize(config);
-            File.WriteAllText(settingsFile, json);
+            try
+            {
+                var json = JsonSerializer.Serialize(config);
+                File.WriteAllText(settingsFile, json);
+            }
+            catch
+            {
+
+            }
+
         }
     }
 }
