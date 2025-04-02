@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace Automation
+namespace Automation.Utils.Helpers
 {
     public class ScriptEditor
     {

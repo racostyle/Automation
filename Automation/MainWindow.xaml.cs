@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Automation.Utils.Helpers;
 
 namespace Automation
 {
@@ -18,9 +19,10 @@ namespace Automation
     public partial class MainWindow : Window
     {
         private readonly DebugOptionsCounter _debugCounter;
-        private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
+        private readonly TaskMonitorConfigsComboBoxWrapper _configsWrapper;
         private readonly Deployer _deployer;
         private readonly SettingsHandler _settingsHandler;
+        private readonly EnvironmentInfo _environmentInfo;
         private Window _debugWindow;
 
         public MainWindow()
@@ -35,9 +37,6 @@ namespace Automation
 
             ShowOverlay();
 
-            _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
-            _deployer = new Deployer(new SimpleShellExecutor());
-
             var visualTreeAdapter = new VisualTreeAdapterBuilder()
                 .Add_HandlerTextBox()
                 .Add_HandlerCheckBox()
@@ -45,8 +44,9 @@ namespace Automation
                 .Build();
 
             _settingsHandler = new SettingsHandler(visualTreeAdapter);
-
-            _deployer = new Deployer(new SimpleShellExecutor());
+            _configsWrapper = new TaskMonitorConfigsComboBoxWrapper(cbbConfigs);
+            _environmentInfo = new EnvironmentInfo();
+            _deployer = new Deployer(new SimpleShellExecutor(), _environmentInfo);
             _debugCounter = new DebugOptionsCounter();
         }
 
@@ -58,7 +58,6 @@ namespace Automation
                 return principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
         }
-
 
         #region CLOSED & LOADED HANDLERS
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -198,7 +197,7 @@ namespace Automation
         {
             if (_debugWindow == null)
             {
-                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, _deployer.GetCommonStartupFolderPath());
+                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, _environmentInfo);
                 _debugWindow.Closed += DebugWindow_Closed!;
                 _debugWindow.Show();
             }

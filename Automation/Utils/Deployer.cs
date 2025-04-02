@@ -1,4 +1,5 @@
-﻿using ConfigLib;
+﻿using Automation.Utils.Helpers;
+using ConfigLib;
 using System;
 using System.IO;
 using System.Linq;
@@ -11,13 +12,15 @@ namespace Automation.Utils
     public class Deployer
     {
         private readonly SimpleShellExecutor _shell;
+        private readonly EnvironmentInfo _environmentInfo;
 
         private readonly string EASY_SCRIPT_LAUNCHER = "EasyScriptLauncher";
         private readonly string TASK_MONITOR = "TaskMonitor";
 
-        public Deployer(SimpleShellExecutor shell)
+        public Deployer(SimpleShellExecutor shell, EnvironmentInfo environmentInfo)
         {
             _shell = shell;
+            _environmentInfo = environmentInfo;
         }
 
         #region EASY SCRIPT LAUNCHER
@@ -35,7 +38,7 @@ namespace Automation.Utils
             CheckScriptLauncherSettings(scriptsLocation);
 
             //Check for Shortcut
-            var startupPath = GetCommonStartupFolderPath();
+            var startupPath = _environmentInfo.GetCommonStartupFolderPath();
             var doesShortcutExist = Directory.GetFiles(startupPath, "*").Any(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase));
 
             return doesShortcutExist;
@@ -43,7 +46,7 @@ namespace Automation.Utils
 
         public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
         {
-            var commonStartup = GetCommonStartupFolderPath();
+            var commonStartup = _environmentInfo.GetCommonStartupFolderPath();
             if (!File.Exists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
             {
                 _shell.CreateShortcut(Directory.GetCurrentDirectory(), commonStartup, EASY_SCRIPT_LAUNCHER);
@@ -61,7 +64,7 @@ namespace Automation.Utils
             if (File.Exists(settings))
                 File.Delete(settings);
 
-            var startupPath = GetCommonStartupFolderPath();
+            var startupPath = _environmentInfo.GetCommonStartupFolderPath();
             var shortcuts = Directory.GetFiles(startupPath, "*").Where(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (shortcuts.Any())
             {
@@ -108,13 +111,6 @@ namespace Automation.Utils
         #endregion
 
         #region TASK MONITOR
-        public string GetCommonStartupFolderPath()
-        {
-            var programData = Environment.GetEnvironmentVariable("ProgramData");
-            var commonStartupPath = Path.Combine(programData, @"Microsoft\Windows\Start Menu\Programs\Startup");
-            return commonStartupPath;
-        }
-
         public bool CheckTaskMonitor(string scriptsLocation)
         {
             var basePath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);

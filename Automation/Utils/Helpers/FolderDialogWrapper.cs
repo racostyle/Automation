@@ -1,7 +1,7 @@
 ﻿using Ookii.Dialogs.Wpf;
 using System;
 
-namespace Automation.Utils
+namespace Automation.Utils.Helpers
 {
     internal class FolderDialogWrapper
     {

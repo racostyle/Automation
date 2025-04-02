@@ -2,13 +2,13 @@
 using System.Linq;
 using System.Windows.Controls;
 
-namespace Automation.Utils
+namespace Automation.Utils.Helpers
 {
-    internal class ComboBoxWrapper_TaskMonitorConfigs
+    internal class TaskMonitorConfigsComboBoxWrapper
     {
         private readonly ComboBox _comboBox;
 
-        public ComboBoxWrapper_TaskMonitorConfigs(ComboBox comboBox)
+        public TaskMonitorConfigsComboBoxWrapper(ComboBox comboBox)
         {
             _comboBox = comboBox;
         }
