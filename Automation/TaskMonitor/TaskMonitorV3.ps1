@@ -187,7 +187,6 @@ Log-Message "About to sleep for 30 seconds to ensure environment is set"
 Start-Sleep -Seconds 30 #Delay before loop
 Log-Message "Resumed after sleeping for 30 seconds"
 
-
 #InfoCheck. This is outside of the loop so it does not get spammed every interval
 foreach ($program in $programsList) {
     $IsProcessAlreadyRunning = Get-Process -Name $program.ProgramName -ErrorAction SilentlyContinue
