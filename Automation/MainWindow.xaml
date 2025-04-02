@@ -46,8 +46,6 @@
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
@@ -60,7 +58,7 @@
             <RowDefinition Height="1.3*"/>
         </Grid.RowDefinitions>
 
-        <Rectangle Name="recOverlay" Panel.ZIndex="1000" Fill="Black" Opacity=".5" Grid.RowSpan="9" Grid.ColumnSpan="4" Visibility="Hidden"></Rectangle>
+        <Rectangle Name="recOverlay" Panel.ZIndex="1000" Fill="Black" Opacity=".5" Grid.RowSpan="8" Grid.ColumnSpan="4" Visibility="Hidden"></Rectangle>
 
         <Label 
             MouseDown="Label_MouseDown" 

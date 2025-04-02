@@ -217,7 +217,7 @@ Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
     $timer.Stop()
     $timer.Dispose()
     Unregister-Event -SourceIdentifier * 
-}
+} | Out-Null
 
 Write-Host ""
 Write-Host "Main Loop Started"
