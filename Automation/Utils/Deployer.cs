@@ -32,7 +32,7 @@ namespace Automation.Utils
                 await Task.Delay(200);
             }
 
-            ChangeScriptLauncherSettings(scriptsLocation);
+            CheckScriptLauncherSettings(scriptsLocation);
 
             //Check for Shortcut
             var startupPath = GetCommonStartupFolderPath();
@@ -82,7 +82,7 @@ namespace Automation.Utils
             return resultlauncher == resultMonitor;
         }
 
-        public bool ChangeScriptLauncherSettings(string scriptsLocation)
+        public bool CheckScriptLauncherSettings(string scriptsLocation)
         {
             var settings = $"{EASY_SCRIPT_LAUNCHER}_Settings.json";
 
