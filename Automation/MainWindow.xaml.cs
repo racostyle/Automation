@@ -46,7 +46,7 @@ namespace Automation
             _settingsHandler = new SettingsHandler(visualTreeAdapter);
             _configsWrapper = new TaskMonitorConfigsComboBoxWrapper(cbbConfigs);
             _environmentInfo = new EnvironmentInfo();
-            _deployer = new Deployer(new SimpleShellExecutor(), _environmentInfo);
+            _deployer = new Deployer(new SimpleShellExecutor(), _environmentInfo, new FileChecker());
             _debugCounter = new DebugOptionsCounter();
         }
 
@@ -255,7 +255,7 @@ namespace Automation
         {
             if (_debugCounter.DoOpenWindow())
             {
-                var window = new DeveloperOptionsWindow(_deployer, tbScriptsLocation.Text);
+                var window = new DeveloperOptionsWindow(_deployer, _environmentInfo, tbScriptsLocation.Text);
                 window.ShowDialog();
             }
         }

@@ -1,4 +1,5 @@
 ﻿using Automation.Utils;
+using Automation.Utils.Helpers;
 using System.Diagnostics;
 using System.Windows;
 
@@ -10,12 +11,14 @@ namespace Automation
     public partial class DeveloperOptionsWindow : Window
     {
         private readonly Deployer _deployer;
+        private readonly EnvironmentInfo _environmentInfo;
         private readonly string _scriptsLocation;
 
-        public DeveloperOptionsWindow(Deployer deployer, string scriptsLocation)
+        public DeveloperOptionsWindow(Deployer deployer, EnvironmentInfo environmentInfo, string scriptsLocation)
         {
             InitializeComponent();
             _deployer = deployer;
+            _environmentInfo = environmentInfo;
             _scriptsLocation = scriptsLocation;
             HideOverlay();
         }
@@ -53,7 +56,7 @@ namespace Automation
         {
             var process = new Process();
             process.StartInfo.FileName = "explorer.exe";
-            process.StartInfo.Arguments = _deployer.GetCommonStartupFolderPath();
+            process.StartInfo.Arguments = _environmentInfo.GetCommonStartupFolderPath();
             process.Start();
         }
     }

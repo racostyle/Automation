@@ -13,14 +13,15 @@ namespace Automation.Utils
     {
         private readonly SimpleShellExecutor _shell;
         private readonly EnvironmentInfo _environmentInfo;
-
+        private readonly FileChecker _fileChecker;
         private readonly string EASY_SCRIPT_LAUNCHER = "EasyScriptLauncher";
         private readonly string TASK_MONITOR = "TaskMonitor";
 
-        public Deployer(SimpleShellExecutor shell, EnvironmentInfo environmentInfo)
+        public Deployer(SimpleShellExecutor shell, EnvironmentInfo environmentInfo, FileChecker fileChecker)
         {
             _shell = shell;
             _environmentInfo = environmentInfo;
+            _fileChecker = fileChecker;
         }
 
         #region EASY SCRIPT LAUNCHER
@@ -65,6 +66,7 @@ namespace Automation.Utils
                 File.Delete(settings);
 
             var startupPath = _environmentInfo.GetCommonStartupFolderPath();
+
             var shortcuts = Directory.GetFiles(startupPath, "*").Where(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (shortcuts.Any())
             {
@@ -116,6 +118,8 @@ namespace Automation.Utils
             var basePath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);
             var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
 
+            _fileChecker.CheckFileVersion(basePath, scriptsLocation, TASK_MONITOR);
+
             if (string.IsNullOrEmpty(file))
                 throw new Exception($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
 
@@ -128,7 +132,7 @@ namespace Automation.Utils
 
         public bool SetupTaskMonitor(string scriptsLocation)
         {
-            var programName = "TaskMonitor";
+            var programName = TASK_MONITOR;
             var basePath = Path.Combine(Directory.GetCurrentDirectory(), programName);
             var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{programName}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
 
