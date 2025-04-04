@@ -19,85 +19,52 @@ namespace Automation.Utils
         private readonly EnvironmentInfo _environmentInfo;
         private readonly FileChecker _fileChecker;
         private readonly IFileSystemWrapper _ioWrapper;
+        private readonly SettingsLoader _settingsLoader;
 
-        public Deployer(SimpleShellExecutor shell, EnvironmentInfo environmentInfo, FileChecker fileChecker, IFileSystemWrapper ioWrapper)
+        public Deployer(
+            SimpleShellExecutor shell,
+            EnvironmentInfo environmentInfo,
+            FileChecker fileChecker,
+            IFileSystemWrapper ioWrapper,
+            SettingsLoader settingsLoader)
         {
             _shell = shell;
             _environmentInfo = environmentInfo;
             _fileChecker = fileChecker;
             _ioWrapper = ioWrapper;
+            _settingsLoader = settingsLoader;
         }
 
         #region EASY SCRIPT LAUNCHER
-        public async Task<bool> CheckEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
+        public async Task<bool> SyncEasyScriptLauncher(string scriptsLocation)
         {
             //Check Settings
-            var settings = $"{EASY_SCRIPT_LAUNCHER}_Settings.json";
-
-            if (!_ioWrapper.FileExists(settings))
-            {
-                scriptLoader.LoadSettings(Path.Combine(_ioWrapper.GetCurrentDirectory(), settings));
-                await Task.Delay(200);
-            }
-
             CheckScriptLauncherSettings(scriptsLocation);
 
             //Check for Shortcut
             var startup = _environmentInfo.GetCommonStartupFolderPath();
             var doesShortcutExist = _ioWrapper.GetFiles(startup, "*").Any(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase));
+            var verifyShortcut = _shell.VerifyShortcutTarget(_ioWrapper.GetCurrentDirectory(), startup, $"{EASY_SCRIPT_LAUNCHER}.exe");
 
-            var verifyShortcut = _shell.VerifyShortcut(_ioWrapper.GetCurrentDirectory(), startup, $"{EASY_SCRIPT_LAUNCHER}.exe");
-
-            return doesShortcutExist;
-        }
-
-        public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
-        {
-            var commonStartup = _environmentInfo.GetCommonStartupFolderPath();
-
-            if (!_ioWrapper.FileExists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
+            try
             {
-                _shell.CreateShortcut(_ioWrapper.GetCurrentDirectory(), commonStartup, $"{EASY_SCRIPT_LAUNCHER}.exe");
-                await Task.Delay(200);
-            }
+                if (!doesShortcutExist || !verifyShortcut)
+                {
+                    var files = _ioWrapper.GetFiles(startup, fileName: EASY_SCRIPT_LAUNCHER).ToArray();
+                    foreach (var item in files)
+                        _ioWrapper.DeleteFile(item);
 
-            var result = await CheckEasyScriptLauncher(scriptsLocation, scriptLoader);
+                    _shell.CreateShortcut(_ioWrapper.GetCurrentDirectory(), startup, $"{EASY_SCRIPT_LAUNCHER}.exe");
+                    await Task.Delay(200);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Shortcut creation failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
 
             return true;
-        }
-
-        public async Task<bool> UpdateEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
-        {
-            var settings = Path.Combine(_ioWrapper.GetCurrentDirectory(), $"{EASY_SCRIPT_LAUNCHER}_Settings.json");
-            if (_ioWrapper.FileExists(settings))
-                _ioWrapper.DeleteFile(settings);
-
-            var startupPath = _environmentInfo.GetCommonStartupFolderPath();
-
-            var shortcuts = _ioWrapper.GetFiles(startupPath, "*")
-                .Where(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-
-            if (shortcuts.Any())
-            {
-                foreach (var item in shortcuts)
-                    _ioWrapper.DeleteFile(item);
-            }
-
-            var monitors = _ioWrapper.GetFiles(scriptsLocation, "*")
-                .Where(x => x.Contains(TASK_MONITOR, StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-
-            if (monitors.Any())
-            {
-                foreach (var item in monitors)
-                    _ioWrapper.DeleteFile(item);
-            }
-
-            var setupMonitorResult = SetupTaskMonitor(scriptsLocation);
-            var resultLauncherResult = await SetupEasyScriptLauncher(scriptsLocation, scriptLoader);
-
-            return resultLauncherResult == setupMonitorResult;
         }
 
         public bool CheckScriptLauncherSettings(string scriptsLocation)
@@ -105,7 +72,7 @@ namespace Automation.Utils
             var settings = $"{EASY_SCRIPT_LAUNCHER}_Settings.json";
 
             if (!_ioWrapper.FileExists(settings))
-                return false;
+                _settingsLoader.LoadSettings(Path.Combine(_ioWrapper.GetCurrentDirectory(), settings));
 
             try
             {
@@ -118,7 +85,7 @@ namespace Automation.Utils
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, settings);
+                MessageBox.Show(ex.Message, settings, MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
             return true;
@@ -126,7 +93,7 @@ namespace Automation.Utils
         #endregion
 
         #region TASK MONITOR
-        public bool CheckTaskMonitor(string scriptsLocation)
+        public bool SyncTaskMonitor(string scriptsLocation)
         {
             var sourceTaskMonitorPath = Path.Combine(_ioWrapper.GetCurrentDirectory(), TASK_MONITOR);
             var file = Path.GetFileName(_ioWrapper.GetFiles(sourceTaskMonitorPath, "*.ps1")
@@ -140,11 +107,6 @@ namespace Automation.Utils
             var deployedScriptPath = Path.Combine(scriptsLocation, Path.GetFileName(file));
 
             return _ioWrapper.FileExists(deployedScriptPath) && syncResult;
-        }
-
-        public bool SetupTaskMonitor(string scriptsLocation)
-        {
-            return CheckTaskMonitor(scriptsLocation);
         }
         #endregion
     }

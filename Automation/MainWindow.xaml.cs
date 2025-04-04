@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Automation.Utils.Helpers;
+using ConfigLib;
 
 namespace Automation
 {
@@ -49,7 +50,8 @@ namespace Automation
                 new SimpleShellExecutor(), 
                 _environmentInfo, 
                 new FileChecker(new FileSystemWrapper()),
-                new FileSystemWrapper());
+                new FileSystemWrapper(),
+                new SettingsLoader());
             _debugCounter = new DebugOptionsCounter();
         }
 
@@ -147,7 +149,7 @@ namespace Automation
         private async void OnBtnSetupScripLauncher_Click(object sender, RoutedEventArgs e)
         {
             ShowOverlay();
-            var result = await _deployer.SetupEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
+            var result = await _deployer.SyncEasyScriptLauncher(tbScriptsLocation.Text);
             ColorButton(result, btnSetupScripLauncher);
             HideOverlay();
         }
@@ -158,7 +160,7 @@ namespace Automation
             if (!BaseScriptLocationSafetyCheck())
                 return;
 
-            var result = _deployer.SetupTaskMonitor(tbScriptsLocation.Text);
+            var result = _deployer.SyncTaskMonitor(tbScriptsLocation.Text);
             ColorButton(result, btnSetupTaskMonitor);
             HideOverlay();
         }

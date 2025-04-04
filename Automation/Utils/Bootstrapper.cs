@@ -60,10 +60,10 @@ namespace Automation.Utils
             if (!DoesScriptsLocationExist(_scriptsLocation))
                 SetupEnvironment();
 
-            var result = await _deployer.CheckEasyScriptLauncher(_scriptsLocation, _settingsLoader);
+            var result = await _deployer.SyncEasyScriptLauncher(_scriptsLocation);
             _colorButtonAction.Invoke(result, _btnSetupScripLauncher);
 
-            result = _deployer.CheckTaskMonitor(_scriptsLocation);
+            result = _deployer.SyncTaskMonitor(_scriptsLocation);
             _colorButtonAction.Invoke(result, _btnSetupTaskMonitor);
         }
 

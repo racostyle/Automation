@@ -29,7 +29,7 @@ namespace Automation
                 return;
 
             ShowOverlay();
-            var result = await _deployer.UpdateEasyScriptLauncher(_scriptsLocation, new ConfigLib.SettingsLoader());
+            var result = await _deployer.SyncEasyScriptLauncher(_scriptsLocation);
             cbhDoUpdate.IsChecked = false;
             HideOverlay();
         }

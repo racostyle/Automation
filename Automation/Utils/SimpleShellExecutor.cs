@@ -60,7 +60,7 @@ namespace Automation.Utils
             Execute(command, Directory.GetCurrentDirectory(), false, true);
         }
 
-        public bool VerifyShortcut(string target, string shortcutDestination, string programName)
+        public bool VerifyShortcutTarget(string target, string shortcutDestination, string programName)
         {
             var command = BuildVerifyShortcutScript(target, shortcutDestination, programName);
             var result = Execute(command, Directory.GetCurrentDirectory(), false, true);
@@ -76,7 +76,6 @@ namespace Automation.Utils
             var shortcutPath = Path.Combine(shortcutDestination, $"{programName}.lnk");
             var targetPath = Path.Combine(target, $"{programName}{extension}");
 
-            //enclose path in double quotes
             return @$"
                 $shortcutPath = '{shortcutPath}'
                 $targetPath = '{targetPath}' 

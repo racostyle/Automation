@@ -5,9 +5,13 @@ namespace Automation.Utils.Helpers
 {
     public class FileSystemWrapper : IFileSystemWrapper
     {
-        public string[] GetFiles(string targetLocation, string extension = "")
+        public string[] GetFiles(string targetLocation, string extension = "", string fileName = "")
         {
-            return Directory.GetFiles(targetLocation, $"*{extension}");
+            if (!string.IsNullOrEmpty(extension))
+                return Directory.GetFiles(targetLocation, $"*{extension}");
+            if (!string.IsNullOrEmpty(fileName))
+                return Directory.GetFiles(targetLocation, $"*{fileName}*");
+            return Directory.GetFiles(targetLocation);
         }
 
         public void DeleteFile(string file)
