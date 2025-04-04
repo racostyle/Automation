@@ -115,19 +115,17 @@ namespace Automation.Utils
         #region TASK MONITOR
         public bool CheckTaskMonitor(string scriptsLocation)
         {
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);
-            var file = Path.GetFileName(Directory.GetFiles(basePath, "*.ps1").Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
-
-            _fileChecker.CheckFileVersion(basePath, scriptsLocation, TASK_MONITOR);
+            var taskMonitorPath = Path.Combine(Directory.GetCurrentDirectory(), TASK_MONITOR);
+            var file = Path.GetFileName(Directory.GetFiles(taskMonitorPath, "*.ps1").Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
 
             if (string.IsNullOrEmpty(file))
                 throw new Exception($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
 
-            var path = Path.Combine(scriptsLocation, Path.GetFileName(file));
-            if (File.Exists(path))
-                return true;
+            var syncResult = _fileChecker.SyncLatestFileVersion(taskMonitorPath, scriptsLocation, $"{TASK_MONITOR}.ps1");
 
-            return false;
+            var deployedScript = Path.Combine(scriptsLocation, Path.GetFileName(file));
+
+            return File.Exists(deployedScript) && syncResult;
         }
 
         public bool SetupTaskMonitor(string scriptsLocation)

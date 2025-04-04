@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Automation.Utils.Helpers.Abstractions;
+using System;
 using System.IO;
 using System.Linq;
 
@@ -6,33 +7,64 @@ namespace Automation.Utils.Helpers
 {
     public class FileChecker
     {
-        internal void CheckFileVersion(string baseLocation, string targetLocation, string fileNameWithoutEnding)
+        private readonly IIOWrapper _ioWrapper;
+
+        public FileChecker(IIOWrapper ioWrapper)
         {
-            var mostRecent = Directory.GetFiles(baseLocation, "*.ps1")
-                .Where(x => x.Contains($"{fileNameWithoutEnding}", StringComparison.OrdinalIgnoreCase))
+            _ioWrapper = ioWrapper;
+        }
+
+        internal bool SyncLatestFileVersion(string baseLocation, string targetLocation, string fileNameWithExtension)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(fileNameWithExtension);
+            var extension = Path.GetExtension(fileNameWithExtension);
+
+            var mostRecent = _ioWrapper.GetFiles(baseLocation, $"*{extension}")
+                .Where(x => x.Contains($"{fileName}", StringComparison.OrdinalIgnoreCase))
                 .Select(x => new FileInfo(x))
                 .OrderByDescending(x => x.LastWriteTime)
                 .FirstOrDefault();
 
-            var deployedFiles = Directory.GetFiles(targetLocation, "*.ps1")
-                .Where(x => x.Contains($"{fileNameWithoutEnding}", StringComparison.OrdinalIgnoreCase))
-                .Select(x => new FileInfo(x))
-                .OrderByDescending(x => x.LastWriteTime)
-                .ToArray();
+            var deployedFile = EnsureOnlyOneFileIsDeployed(targetLocation, fileNameWithExtension);
+            bool isUpToDate = CheckIfDeployedFileIsLatest(mostRecent, deployedFile);
+            var deployedFileFullName = Path.Combine(targetLocation, mostRecent.Name);
 
-            var isUpToDate = true;
-
-            foreach (var file in deployedFiles)
+            try
             {
-                if (file.LastWriteTime != mostRecent.LastWriteTime)
-                    isUpToDate = false;
+                if (!isUpToDate || deployedFile.Length == 0)
+                    _ioWrapper.CopyFile(mostRecent.FullName, deployedFileFullName, true);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
 
-            if (!isUpToDate || deployedFiles.Length == 0)
-            {
-                var newFile = Path.Combine(targetLocation, mostRecent.Name);
-                File.Copy(mostRecent.FullName, newFile, true);
-            }
+            return _ioWrapper.FileExists(deployedFileFullName);
+        }
+
+        private static bool CheckIfDeployedFileIsLatest(FileInfo mostRecent, FileInfo deployedFile)
+        {
+            if (deployedFile.LastWriteTime != mostRecent.LastWriteTime)
+                return false;
+
+            return true;
+        }
+
+        internal FileInfo EnsureOnlyOneFileIsDeployed(string targetLocation, string fileNameWithExtension)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(fileNameWithExtension);
+            var extension = Path.GetExtension(fileNameWithExtension);
+
+            var deployedFiles = _ioWrapper.GetFiles(targetLocation, $"*{extension}")
+              .Where(x => x.Contains($"{fileName}", StringComparison.OrdinalIgnoreCase))
+              .Select(x => new FileInfo(x))
+              .OrderByDescending(x => x.LastWriteTime)
+              .ToArray();
+
+            for (var i = 1; i < deployedFiles.Length; i++)
+                _ioWrapper.DeleteFile(deployedFiles[i].FullName);
+
+            return deployedFiles.FirstOrDefault();
         }
     }
 }
