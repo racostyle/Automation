@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Automation.Utils.Helpers
 {
-    public class EnvironmentInfo
+    public class EnvironmentInfo : IEnvironmentInfo
     {
         public string GetCommonStartupFolderPath()
         {

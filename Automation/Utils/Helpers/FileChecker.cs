@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Automation.Utils.Helpers
 {
-    public class FileChecker
+    public class FileChecker : IFileChecker
     {
         private readonly IFileSystemWrapper _ioWrapper;
 
@@ -14,7 +14,7 @@ namespace Automation.Utils.Helpers
             _ioWrapper = ioWrapper;
         }
 
-        internal bool SyncLatestFileVersion(string baseLocation, string targetLocation, string fileNameWithExtension)
+        public bool SyncLatestFileVersion(string baseLocation, string targetLocation, string fileNameWithExtension)
         {
             var fileName = Path.GetFileNameWithoutExtension(fileNameWithExtension);
             var extension = Path.GetExtension(fileNameWithExtension);
@@ -53,7 +53,7 @@ namespace Automation.Utils.Helpers
             return true;
         }
 
-        internal FileInfo EnsureOnlyOneFileIsDeployed(string targetLocation, string fileNameWithExtension)
+        public FileInfo EnsureOnlyOneFileIsDeployed(string targetLocation, string fileNameWithExtension)
         {
             var fileName = Path.GetFileNameWithoutExtension(fileNameWithExtension);
             var extension = Path.GetExtension(fileNameWithExtension);

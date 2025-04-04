@@ -1,5 +1,4 @@
-﻿using Automation.Utils.Helpers;
-using Automation.Utils.Helpers.Abstractions;
+﻿using Automation.Utils.Helpers.Abstractions;
 using ConfigLib;
 using System;
 using System.IO;
@@ -15,18 +14,18 @@ namespace Automation.Utils
         private readonly string EASY_SCRIPT_LAUNCHER = "EasyScriptLauncher";
         private readonly string TASK_MONITOR = "TaskMonitor";
 
-        private readonly SimpleShellExecutor _shell;
-        private readonly EnvironmentInfo _environmentInfo;
-        private readonly FileChecker _fileChecker;
+        private readonly ISimpleShellExecutor _shell;
+        private readonly IEnvironmentInfo _environmentInfo;
+        private readonly IFileChecker _fileChecker;
         private readonly IFileSystemWrapper _ioWrapper;
-        private readonly SettingsLoader _settingsLoader;
+        private readonly ISettingsLoader _settingsLoader;
 
         public Deployer(
-            SimpleShellExecutor shell,
-            EnvironmentInfo environmentInfo,
-            FileChecker fileChecker,
+            ISimpleShellExecutor shell,
+            IEnvironmentInfo environmentInfo,
+            IFileChecker fileChecker,
             IFileSystemWrapper ioWrapper,
-            SettingsLoader settingsLoader)
+            ISettingsLoader settingsLoader)
         {
             _shell = shell;
             _environmentInfo = environmentInfo;

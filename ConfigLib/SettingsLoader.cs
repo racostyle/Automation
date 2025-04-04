@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace ConfigLib
 {
-    public class SettingsLoader
+    public class SettingsLoader : ISettingsLoader
     {
         public Config LoadSettings(string settingsFile)
         {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Automation.Utils
 {
-    public class SimpleShellExecutor
+    public class SimpleShellExecutor : ISimpleShellExecutor
     {
         public Process ExecuteExe(string fileName)
         {
@@ -48,7 +48,7 @@ namespace Automation.Utils
 
                 process.Start();
                 process.BeginOutputReadLine();
-                process.WaitForExit(timeout); 
+                process.WaitForExit(timeout);
 
                 return output.ToString();
             }
