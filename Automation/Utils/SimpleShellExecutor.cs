@@ -54,10 +54,10 @@ namespace Automation.Utils
             }
         }
 
-        public void CreateShortcut(string workingDirectory, string shortcutDestination, string programNameWithExtension)
+        public string CreateShortcut(string workingDirectory, string shortcutDestination, string programNameWithExtension)
         {
             var command = BuildCreateShortcutScript(workingDirectory, shortcutDestination, programNameWithExtension);
-            Execute(command, Directory.GetCurrentDirectory(), false, true);
+            return Execute(command, Directory.GetCurrentDirectory(), false, true);
         }
 
         public bool VerifyShortcutTarget(string target, string shortcutDestination, string programName)
@@ -84,7 +84,9 @@ namespace Automation.Utils
                 
                 $Shortcut.TargetPath = $targetPath
                 $Shortcut.WorkingDirectory = [System.IO.Path]::GetDirectoryName($targetPath)
-                $Shortcut.Save()";
+                $Shortcut.Save()
+                
+                Write-Host $shortcutPath";
         }
 
         private string BuildVerifyShortcutScript(string target, string shortcutDestination, string programNameWithExtension)

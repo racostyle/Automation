@@ -51,7 +51,8 @@ namespace Automation
                 _environmentInfo, 
                 new FileChecker(new FileSystemWrapper()),
                 new FileSystemWrapper(),
-                new SettingsLoader());
+                new SettingsLoader(),
+                new MessageBoxWrapper());
             _debugCounter = new DebugOptionsCounter();
         }
 

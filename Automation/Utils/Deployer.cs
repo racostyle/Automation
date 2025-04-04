@@ -11,38 +11,44 @@ namespace Automation.Utils
 {
     public class Deployer
     {
-        private readonly string EASY_SCRIPT_LAUNCHER = "EasyScriptLauncher";
-        private readonly string TASK_MONITOR = "TaskMonitor";
+        public readonly string EASY_SCRIPT_LAUNCHER = "EasyScriptLauncher";
+        public readonly string TASK_MONITOR = "TaskMonitor";
 
         private readonly ISimpleShellExecutor _shell;
         private readonly IEnvironmentInfo _environmentInfo;
         private readonly IFileChecker _fileChecker;
         private readonly IFileSystemWrapper _ioWrapper;
         private readonly ISettingsLoader _settingsLoader;
+        private readonly IMessageBoxWrapper _messageBoxWrapper;
 
         public Deployer(
             ISimpleShellExecutor shell,
             IEnvironmentInfo environmentInfo,
             IFileChecker fileChecker,
             IFileSystemWrapper ioWrapper,
-            ISettingsLoader settingsLoader)
+            ISettingsLoader settingsLoader,
+            IMessageBoxWrapper messageBoxWrapper)
         {
             _shell = shell;
             _environmentInfo = environmentInfo;
             _fileChecker = fileChecker;
             _ioWrapper = ioWrapper;
             _settingsLoader = settingsLoader;
+            _messageBoxWrapper = messageBoxWrapper;
         }
 
         #region EASY SCRIPT LAUNCHER
         public async Task<bool> SyncEasyScriptLauncher(string scriptsLocation)
         {
             //Check Settings
-            CheckScriptLauncherSettings(scriptsLocation);
+            var settingsResult = CheckScriptLauncherSettings(scriptsLocation);
+            if (!settingsResult)
+                return false;
 
             //Check for Shortcut
             var startup = _environmentInfo.GetCommonStartupFolderPath();
-            var doesShortcutExist = _ioWrapper.GetFiles(startup, "*").Any(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase));
+            var fls = _ioWrapper.GetFiles(startup);
+            var doesShortcutExist = _ioWrapper.GetFiles(startup).Any(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase));
             var verifyShortcut = _shell.VerifyShortcutTarget(_ioWrapper.GetCurrentDirectory(), startup, $"{EASY_SCRIPT_LAUNCHER}.exe");
 
             try
@@ -59,7 +65,7 @@ namespace Automation.Utils
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Shortcut creation failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                _messageBoxWrapper.Show(ex.Message, "Shortcut creation failure", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
 
@@ -84,7 +90,7 @@ namespace Automation.Utils
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, settings, MessageBoxButton.OK, MessageBoxImage.Error);
+                _messageBoxWrapper.Show(ex.Message, settings, MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
             return true;
