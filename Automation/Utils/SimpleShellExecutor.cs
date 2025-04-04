@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace Automation.Utils
 {
@@ -19,13 +21,7 @@ namespace Automation.Utils
             return process;
         }
 
-        public void CreateShortcut(string target, string shortcutDestination, string programName)
-        {
-            var command = BuildShortcutScript(target, shortcutDestination, programName);
-            Execute(command, Directory.GetCurrentDirectory(), false, true);
-        }
-
-        public Process Execute(string command, string workingDirectory, bool visible = true, bool asAdmin = true)
+        public string Execute(string command, string workingDirectory, bool visible = true, bool asAdmin = true, int timeout = 5000)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
@@ -33,27 +29,57 @@ namespace Automation.Utils
                 Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{command}\"",
                 UseShellExecute = visible,
                 CreateNoWindow = !visible,
+                RedirectStandardOutput = !visible,
                 WorkingDirectory = workingDirectory,
                 Verb = asAdmin ? "RunAs" : string.Empty
             };
 
-            Process process = Process.Start(startInfo);
-            return process;
+            StringBuilder output = new StringBuilder();
+            using (Process process = new Process())
+            {
+                process.StartInfo = startInfo;
+                process.OutputDataReceived += (sender, args) =>
+                {
+                    if (!string.IsNullOrEmpty(args.Data))
+                    {
+                        output.AppendLine(args.Data);
+                    }
+                };
+
+                process.Start();
+                process.BeginOutputReadLine();
+                process.WaitForExit(timeout); 
+
+                return output.ToString();
+            }
         }
 
-        private string BuildShortcutScript(string target, string shortcutDestination, string programName)
+        public void CreateShortcut(string workingDirectory, string shortcutDestination, string programNameWithExtension)
         {
-            var shortcutPath = Path.Combine(shortcutDestination, $"{programName}.lnk");
-            var targetPath = Path.Combine(target, $"{programName}.exe");
+            var command = BuildCreateShortcutScript(workingDirectory, shortcutDestination, programNameWithExtension);
+            Execute(command, Directory.GetCurrentDirectory(), false, true);
+        }
 
-            // Escaping quotes for use in PowerShell
-            shortcutPath = shortcutPath.Replace(@"\", @"\\");  // Ensure the backslashes are escaped in PowerShell string
-            targetPath = targetPath.Replace(@"\", @"\\");
+        public bool VerifyShortcut(string target, string shortcutDestination, string programName)
+        {
+            var command = BuildVerifyShortcutScript(target, shortcutDestination, programName);
+            var result = Execute(command, Directory.GetCurrentDirectory(), false, true);
+            return !result.Contains("INVALID", StringComparison.OrdinalIgnoreCase);
+        }
+
+        #region Scripts
+        private string BuildCreateShortcutScript(string target, string shortcutDestination, string programNameWithExtension)
+        {
+            var programName = Path.GetFileNameWithoutExtension(programNameWithExtension);
+            var extension = Path.GetExtension(programNameWithExtension);
+
+            var shortcutPath = Path.Combine(shortcutDestination, $"{programName}.lnk");
+            var targetPath = Path.Combine(target, $"{programName}{extension}");
 
             //enclose path in double quotes
             return @$"
-                $shortcutPath = \""{shortcutPath}\""  
-                $targetPath = \""{targetPath}\""     
+                $shortcutPath = '{shortcutPath}'
+                $targetPath = '{targetPath}' 
                 $WScriptShell = New-Object -ComObject WScript.Shell
                 $Shortcut = $WScriptShell.CreateShortcut($shortcutPath)
                 
@@ -61,5 +87,29 @@ namespace Automation.Utils
                 $Shortcut.WorkingDirectory = [System.IO.Path]::GetDirectoryName($targetPath)
                 $Shortcut.Save()";
         }
+
+        private string BuildVerifyShortcutScript(string target, string shortcutDestination, string programNameWithExtension)
+        {
+            var programName = Path.GetFileNameWithoutExtension(programNameWithExtension);
+            var extension = Path.GetExtension(programNameWithExtension);
+
+            var shortcutPath = Path.Combine(shortcutDestination, $"{programName}.lnk");
+            var targetPath = Path.Combine(target, $"{programName}{extension}");
+
+            return $@"
+                $shortcutPath = '{shortcutPath}'
+                $targetPath = '{targetPath}'
+
+                $WshShell = New-Object -ComObject WScript.Shell
+                $Shortcut = $WshShell.CreateShortcut($shortcutPath)
+
+                if ($Shortcut.TargetPath -eq $targetPath) {{
+                    Write-Host OK
+                }} else {{
+                    Write-Host INVALID
+                }}
+            ";
+        }
+        #endregion
     }
 }

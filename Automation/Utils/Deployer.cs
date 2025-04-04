@@ -43,8 +43,10 @@ namespace Automation.Utils
             CheckScriptLauncherSettings(scriptsLocation);
 
             //Check for Shortcut
-            var startupPath = _environmentInfo.GetCommonStartupFolderPath();
-            var doesShortcutExist = _ioWrapper.GetFiles(startupPath, "*").Any(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase));
+            var startup = _environmentInfo.GetCommonStartupFolderPath();
+            var doesShortcutExist = _ioWrapper.GetFiles(startup, "*").Any(x => x.Contains(EASY_SCRIPT_LAUNCHER, StringComparison.OrdinalIgnoreCase));
+
+            var verifyShortcut = _shell.VerifyShortcut(_ioWrapper.GetCurrentDirectory(), startup, $"{EASY_SCRIPT_LAUNCHER}.exe");
 
             return doesShortcutExist;
         }
@@ -52,9 +54,10 @@ namespace Automation.Utils
         public async Task<bool> SetupEasyScriptLauncher(string scriptsLocation, SettingsLoader scriptLoader)
         {
             var commonStartup = _environmentInfo.GetCommonStartupFolderPath();
+
             if (!_ioWrapper.FileExists(Path.Combine(commonStartup, $"{EASY_SCRIPT_LAUNCHER}.lnk")))
             {
-                _shell.CreateShortcut(_ioWrapper.GetCurrentDirectory(), commonStartup, EASY_SCRIPT_LAUNCHER);
+                _shell.CreateShortcut(_ioWrapper.GetCurrentDirectory(), commonStartup, $"{EASY_SCRIPT_LAUNCHER}.exe");
                 await Task.Delay(200);
             }
 
