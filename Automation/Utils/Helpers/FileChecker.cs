@@ -7,9 +7,9 @@ namespace Automation.Utils.Helpers
 {
     public class FileChecker
     {
-        private readonly IIOWrapper _ioWrapper;
+        private readonly IFileSystemWrapper _ioWrapper;
 
-        public FileChecker(IIOWrapper ioWrapper)
+        public FileChecker(IFileSystemWrapper ioWrapper)
         {
             _ioWrapper = ioWrapper;
         }
@@ -27,23 +27,26 @@ namespace Automation.Utils.Helpers
 
             var deployedFile = EnsureOnlyOneFileIsDeployed(targetLocation, fileNameWithExtension);
             bool isUpToDate = CheckIfDeployedFileIsLatest(mostRecent, deployedFile);
-            var deployedFileFullName = Path.Combine(targetLocation, mostRecent.Name);
+            var destFileFullName = Path.Combine(targetLocation, mostRecent.Name);
 
             try
             {
                 if (!isUpToDate || deployedFile.Length == 0)
-                    _ioWrapper.CopyFile(mostRecent.FullName, deployedFileFullName, true);
+                    _ioWrapper.CopyFile(mostRecent.FullName, destFileFullName, true);
             }
             catch (Exception ex)
             {
                 throw ex;
             }
 
-            return _ioWrapper.FileExists(deployedFileFullName);
+            return _ioWrapper.FileExists(destFileFullName);
         }
 
-        private static bool CheckIfDeployedFileIsLatest(FileInfo mostRecent, FileInfo deployedFile)
+        private bool CheckIfDeployedFileIsLatest(FileInfo mostRecent, FileInfo deployedFile)
         {
+            if (deployedFile == null)
+                return false;
+
             if (deployedFile.LastWriteTime != mostRecent.LastWriteTime)
                 return false;
 

@@ -3,7 +3,7 @@ using Automation.Utils.Helpers.Abstractions;
 
 namespace Automation.Utils.Helpers
 {
-    public class IOWrapper : IIOWrapper
+    public class FileSystemWrapper : IFileSystemWrapper
     {
         public string[] GetFiles(string targetLocation, string extension = "")
         {
@@ -23,6 +23,21 @@ namespace Automation.Utils.Helpers
         public bool FileExists(string file)
         {
             return File.Exists(file);
+        }
+
+        public string GetCurrentDirectory()
+        {
+            return Directory.GetCurrentDirectory();
+        }
+
+        public void WriteAllText(string path, string contents)
+        {
+            File.WriteAllText(path, contents);
+        }
+
+        public string ReadAllText(string path)
+        {
+            return File.ReadAllText(path);
         }
     }
 }

@@ -34,7 +34,6 @@ namespace Automation
             }
 
             InitializeComponent();
-
             ShowOverlay();
 
             var visualTreeAdapter = new VisualTreeAdapterBuilder()
@@ -46,7 +45,11 @@ namespace Automation
             _settingsHandler = new SettingsHandler(visualTreeAdapter);
             _configsWrapper = new TaskMonitorConfigsComboBoxWrapper(cbbConfigs);
             _environmentInfo = new EnvironmentInfo();
-            _deployer = new Deployer(new SimpleShellExecutor(), _environmentInfo, new FileChecker());
+            _deployer = new Deployer(
+                new SimpleShellExecutor(), 
+                _environmentInfo, 
+                new FileChecker(new FileSystemWrapper()),
+                new FileSystemWrapper());
             _debugCounter = new DebugOptionsCounter();
         }
 
