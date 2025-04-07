@@ -1,10 +1,11 @@
-﻿namespace Automation.Logging
+﻿using System;
+
+namespace Automation.Logging
 {
-    public interface ILogger
+    public interface ILogger : IDisposable
     {
-        void Dispose();
         string GetLastLines();
-        string GetLog();
         void Log(string message);
+        string GetLog();
     }
 }

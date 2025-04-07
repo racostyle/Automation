@@ -1,18 +1,16 @@
 ﻿using Automation.ConfigurationAdapter;
+using Automation.Logging;
 using Automation.Utils;
-using System;
-using System.Collections.Generic;
+using Automation.Utils.Helpers;
+using Automation.Utils.Helpers.FileCheck;
 using Automation.Windows;
+using ConfigLib;
+using System;
 using System.IO;
 using System.Security.Principal;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Automation.Utils.Helpers;
-using ConfigLib;
-using Automation.Utils.Helpers.FileCheck;
-using Automation.Logging;
 
 namespace Automation
 {
@@ -52,22 +50,15 @@ namespace Automation
             _configsWrapper = new TaskMonitorConfigsComboBoxWrapper(cbbConfigs);
             _environmentInfo = new EnvironmentInfo();
             _deployer = new Deployer(
-                new SimpleShellExecutor(),
+                _logger,
+                new SimpleShellExecutor(_logger),
                 _environmentInfo,
-                new FileChecker(new FileSystemWrapper(), new FileInfoFactory()),
+                new FileChecker(_logger, new FileSystemWrapper(), new FileInfoFactory()),
                 new FileSystemWrapper(),
                 new SettingsLoader(),
                 new MessageBoxWrapper());
-            _debugCounter = new DebugOptionsCounter();
-        }
 
-        public static bool IsRunningAsAdministrator()
-        {
-            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
-            {
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
-                return principal.IsInRole(WindowsBuiltInRole.Administrator);
-            }
+            _debugCounter = new DebugOptionsCounter();
         }
 
         #region CLOSED & LOADED HANDLERS
@@ -110,7 +101,7 @@ namespace Automation
                 if (string.IsNullOrEmpty(configLocation))
                     return;
 
-                Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_settingsHandler.VisualTreeAdapter, tbScriptsLocation.Text, configLocation);
+                TaskMonitorConfigWindow secWindow = new TaskMonitorConfigWindow(_settingsHandler.VisualTreeAdapter, tbScriptsLocation.Text, configLocation);
                 secWindow.ShowDialog();
 
                 if (secWindow.DialogResult == true)
@@ -129,7 +120,7 @@ namespace Automation
                 if (!BaseScriptLocationSafetyCheck())
                     return;
 
-                Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_settingsHandler.VisualTreeAdapter, tbScriptsLocation.Text, string.Empty);
+                TaskMonitorConfigWindow secWindow = new TaskMonitorConfigWindow(_settingsHandler.VisualTreeAdapter, tbScriptsLocation.Text, string.Empty);
                 secWindow.ShowDialog();
 
                 if (secWindow.DialogResult == true) 
@@ -208,7 +199,7 @@ namespace Automation
         {
             try
             {
-                var executor = new SimpleShellExecutor();
+                var executor = new SimpleShellExecutor(_logger);
                 executor.ExecuteExe(Path.Combine(Directory.GetCurrentDirectory(), "EasyScriptLauncher.exe"));
             }
             catch (Exception ex)
@@ -235,6 +226,16 @@ namespace Automation
         #endregion
 
         #region AUXILIARY
+
+        public static bool IsRunningAsAdministrator()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+
         private bool BaseScriptLocationSafetyCheck()
         {
             if (!Directory.Exists(tbScriptsLocation.Text))
@@ -279,7 +280,7 @@ namespace Automation
         {
             if (_debugCounter.DoOpenWindow())
             {
-                var window = new DeveloperOptionsWindow(_deployer, _environmentInfo, tbScriptsLocation.Text);
+                var window = new DeveloperOptionsWindow(_logger, _deployer, _environmentInfo, tbScriptsLocation.Text);
                 window.ShowDialog();
             }
         }

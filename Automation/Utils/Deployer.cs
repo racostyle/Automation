@@ -1,4 +1,5 @@
-﻿using Automation.Utils.Helpers.Abstractions;
+﻿using Automation.Logging;
+using Automation.Utils.Helpers.Abstractions;
 using Automation.Utils.Helpers.FileCheck;
 using ConfigLib;
 using System;
@@ -15,6 +16,7 @@ namespace Automation.Utils
         public readonly string EASY_SCRIPT_LAUNCHER = "EasyScriptLauncher";
         public readonly string TASK_MONITOR = "TaskMonitor";
 
+        private readonly ILogger _logger;
         private readonly ISimpleShellExecutor _shell;
         private readonly IEnvironmentInfo _environmentInfo;
         private readonly IFileChecker _fileChecker;
@@ -23,6 +25,7 @@ namespace Automation.Utils
         private readonly IMessageBoxWrapper _messageBoxWrapper;
 
         public Deployer(
+            ILogger logger,
             ISimpleShellExecutor shell,
             IEnvironmentInfo environmentInfo,
             IFileChecker fileChecker,
@@ -30,6 +33,7 @@ namespace Automation.Utils
             ISettingsLoader settingsLoader,
             IMessageBoxWrapper messageBoxWrapper)
         {
+            _logger = logger;
             _shell = shell;
             _environmentInfo = environmentInfo;
             _fileChecker = fileChecker;
@@ -54,18 +58,30 @@ namespace Automation.Utils
 
             try
             {
+                var exe = Path.Combine(_ioWrapper.GetCurrentDirectory(), $"{EASY_SCRIPT_LAUNCHER}.exe");
+
                 if (!doesShortcutExist || !verifyShortcut)
                 {
+                    _logger?.Log($"Shortcut does not exist or pointing to wrong target!");
                     var files = _ioWrapper.GetFiles(startup, fileName: EASY_SCRIPT_LAUNCHER).ToArray();
                     foreach (var item in files)
+                    {
+                        _logger?.Log($"Deleting: {item}");
                         _ioWrapper.DeleteFile(item);
+                    }
+
+
+                    _logger?.Log($"Creating new Shortcut in: {Environment.NewLine}'{startup}'{Environment.NewLine}Pointing to: '{exe}'");
 
                     _shell.CreateShortcut(_ioWrapper.GetCurrentDirectory(), startup, $"{EASY_SCRIPT_LAUNCHER}.exe");
                     await Task.Delay(200);
                 }
+                else
+                    _logger?.Log($"Shortcut in:{Environment.NewLine}'{startup}'{Environment.NewLine}Pointing to: '{exe}'{Environment.NewLine}OK");
             }
             catch (Exception ex)
             {
+                _logger?.Log($"Shortcut creation failure. Error; {ex.Message}");
                 _messageBoxWrapper.Show(ex.Message, "Shortcut creation failure", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
@@ -88,6 +104,8 @@ namespace Automation.Utils
 
                 text = JsonSerializer.Serialize(config);
                 _ioWrapper.WriteAllText(settings, text);
+
+                _logger?.Log($"'{settings}' are OK");
             }
             catch (Exception ex)
             {
@@ -107,7 +125,10 @@ namespace Automation.Utils
                 .FirstOrDefault());
 
             if (string.IsNullOrEmpty(file))
+            {
+                _logger?.Log($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
                 throw new Exception($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
+            }
 
             var syncResult = _fileChecker.SyncLatestFileVersion(sourceTaskMonitorPath, scriptsLocation, $"{TASK_MONITOR}.ps1");
             var deployedScriptPath = Path.Combine(scriptsLocation, Path.GetFileName(file));

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Automation.Logging;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -7,6 +8,13 @@ namespace Automation.Utils
 {
     public class SimpleShellExecutor : ISimpleShellExecutor
     {
+        private Logger _logger;
+
+        public SimpleShellExecutor(Logger logger)
+        {
+            _logger = logger;
+        }
+
         public Process ExecuteExe(string fileName)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo
@@ -18,6 +26,10 @@ namespace Automation.Utils
             };
 
             Process process = Process.Start(startInfo);
+
+            if (process != null)
+                _logger?.Log($"Process with the name '{fileName}' started");
+
             return process;
         }
 
@@ -50,7 +62,11 @@ namespace Automation.Utils
                 process.BeginOutputReadLine();
                 process.WaitForExit(timeout);
 
-                return output.ToString();
+                var result = output.ToString();
+                result = result.EndsWith(Environment.NewLine) ? result.Substring(0, result.Length - Environment.NewLine.Length) : result;
+
+                _logger?.Log($"Script executed. Result: {result}");
+                return result;
             }
         }
 

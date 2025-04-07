@@ -1,4 +1,5 @@
-﻿using Automation.Utils.Helpers.Abstractions;
+﻿using Automation.Logging;
+using Automation.Utils.Helpers.Abstractions;
 using System;
 using System.IO;
 using System.Linq;
@@ -7,11 +8,13 @@ namespace Automation.Utils.Helpers.FileCheck
 {
     public class FileChecker : IFileChecker 
     {
+        private readonly ILogger _logger;
         private readonly IFileSystemWrapper _ioWrapper;
         private readonly IFileInfoFactory _factory;
 
-        public FileChecker(IFileSystemWrapper ioWrapper, IFileInfoFactory factory)
+        public FileChecker(ILogger logger, IFileSystemWrapper ioWrapper, IFileInfoFactory factory)
         {
+            _logger = logger;
             _ioWrapper = ioWrapper;
             _factory = factory;
         }
@@ -35,9 +38,12 @@ namespace Automation.Utils.Helpers.FileCheck
             {
                 if (!isUpToDate || deployedFile == null)
                     _ioWrapper.CopyFile(mostRecent.FullName, destFileFullName, true);
+                else
+                    _logger?.Log($"Files are up to date. Files checked: '{mostRecent.Name}'");
             }
             catch (Exception ex)
             {
+                _logger?.Log($"Error while syncing the files. Error: '{ex.Message}'");
                 throw ex;
             }
 

@@ -5,14 +5,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Forms.Design;
 
 namespace Automation
 {
     /// <summary>
-    /// Interaction logic for Window_TaskMonitor_Config.xaml
+    /// Interaction logic for TaskMonitorConfigWindow.xaml
     /// </summary>
-    public partial class Window_TaskMonitor_Config : Window
+    public partial class TaskMonitorConfigWindow : Window
     {
         private readonly VisualTreeAdapter _visualTreeAdapter;
         private readonly string _baseScriptsLocation;
@@ -20,7 +19,7 @@ namespace Automation
         private string _fileName;
         public string FileName => _fileName;
 
-        public Window_TaskMonitor_Config(VisualTreeAdapter visualTreeAdapter, string baseScriptsLocation = "", string configLocation = "")
+        public TaskMonitorConfigWindow(VisualTreeAdapter visualTreeAdapter, string baseScriptsLocation = "", string configLocation = "")
         {
             InitializeComponent();
             _visualTreeAdapter = visualTreeAdapter;

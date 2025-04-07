@@ -1,3 +1,4 @@
+using Automation.Logging;
 using Automation.Utils;
 using Automation.Utils.Helpers.Abstractions;
 using Automation.Utils.Helpers.FileCheck;
@@ -10,6 +11,7 @@ namespace AutomationTests
     public class DeployerTests
     {
         Deployer _deployer;
+        Mock<ILogger> _loggerMock;
         Mock<ISimpleShellExecutor> _simpleShellExecutorMock;
         Mock<IEnvironmentInfo> _environmentInfoMock;
         Mock<IFileChecker> _fileCheckerMock;
@@ -23,6 +25,7 @@ namespace AutomationTests
         [SetUp]
         public void Setup()
         {
+            _loggerMock = new Mock<ILogger>();
             _simpleShellExecutorMock = new Mock<ISimpleShellExecutor>();
             _environmentInfoMock = new Mock<IEnvironmentInfo>();
             _fileCheckerMock = new Mock<IFileChecker>();
@@ -33,7 +36,13 @@ namespace AutomationTests
             _messageBoxWrapperMock.Setup(x => x.Show(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<MessageBoxButton>(), It.IsAny<MessageBoxImage>()))
                .Callback(() => { });
 
+            _ioWrapperMock.Setup(x => x.GetCurrentDirectory())
+                .Returns("C:\\CurrentDir");
+
+            _loggerMock.Setup(x => x.Log(It.IsAny<string>()));
+
             _deployer = new Deployer(
+                _loggerMock.Object,
                 _simpleShellExecutorMock.Object,
                 _environmentInfoMock.Object,
                 _fileCheckerMock.Object,
@@ -132,9 +141,6 @@ namespace AutomationTests
         [Test]
         public async Task SyncTaskMonitor_EverythingOk_ReturnsSuccess()
         {
-            _ioWrapperMock.Setup(x => x.GetCurrentDirectory())
-                .Returns(scriptsLocation);
-
             _ioWrapperMock.Setup(x => x.GetFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns([Path.Combine(startupPath, $"{_deployer.TASK_MONITOR}.ps1")]);
 
@@ -153,9 +159,6 @@ namespace AutomationTests
         [Test]
         public async Task SyncTaskMonitor_NoTaskMonitor_ThrowsException()
         {
-            _ioWrapperMock.Setup(x => x.GetCurrentDirectory())
-                .Returns(scriptsLocation);
-
             _ioWrapperMock.Setup(x => x.GetFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Array.Empty<string>());
 

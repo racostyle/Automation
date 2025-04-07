@@ -1,4 +1,5 @@
-﻿using Automation.Utils.Helpers.Abstractions;
+﻿using Automation.Logging;
+using Automation.Utils.Helpers.Abstractions;
 using Automation.Utils.Helpers.FileCheck;
 using Moq;
 
@@ -10,6 +11,8 @@ namespace AutomationTests
         FileChecker _fileChecker;
         Mock<IFileSystemWrapper> _ioWrapper;
         Mock<IFileInfoFactory> _fileInfoFactory;
+        Mock<ILogger> _loggerMock;
+
         Func<string, DateTime, IFileInfoWrapper> BuildFileInfoWrapperFunc;
 
         private string _pathToDeployedFiles = "C:\\Scripts\\Ble";
@@ -21,6 +24,7 @@ namespace AutomationTests
         {
             _ioWrapper = new Mock<IFileSystemWrapper>();
             _fileInfoFactory = new Mock<IFileInfoFactory>();
+            _loggerMock = new Mock<ILogger>();
 
             BuildFileInfoWrapperFunc = (path, dateTime) =>
             {
@@ -31,7 +35,9 @@ namespace AutomationTests
                 return obj.Object;
             };
 
-            _fileChecker = new FileChecker(_ioWrapper.Object, _fileInfoFactory.Object);
+            _loggerMock.Setup(x => x.Log(It.IsAny<string>()));
+
+            _fileChecker = new FileChecker(_loggerMock.Object, _ioWrapper.Object, _fileInfoFactory.Object);
         }
 
         [Test]

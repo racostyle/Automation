@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Automation.Logging
 {
-    public class Logger : IDisposable, ILogger
+    public class Logger : ILogger
     {
         private readonly StringBuilder _log = new StringBuilder();
         private string _lastMessage = string.Empty;
@@ -16,11 +16,6 @@ namespace Automation.Logging
             _log.AppendLine($"{time} {message}");
         }
 
-        public string GetLog()
-        {
-            return _log.ToString();
-        }
-
         public string GetLastLines()
         {
             return _lastMessage;
@@ -29,6 +24,11 @@ namespace Automation.Logging
         public void Dispose()
         {
             File.WriteAllText("Log.txt", _log.ToString());
+        }
+
+        public string GetLog()
+        {
+            return _log.ToString();
         }
 
     }
