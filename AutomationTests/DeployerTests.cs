@@ -1,5 +1,6 @@
 using Automation.Utils;
 using Automation.Utils.Helpers.Abstractions;
+using Automation.Utils.Helpers.FileCheck;
 using ConfigLib;
 using Moq;
 using System.Windows;

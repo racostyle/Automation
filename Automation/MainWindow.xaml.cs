@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Automation.Utils.Helpers;
 using ConfigLib;
+using Automation.Utils.Helpers.FileCheck;
 
 namespace Automation
 {
@@ -49,7 +50,7 @@ namespace Automation
             _deployer = new Deployer(
                 new SimpleShellExecutor(), 
                 _environmentInfo, 
-                new FileChecker(new FileSystemWrapper()),
+                new FileChecker(new FileSystemWrapper(), new FileInfoFactory()),
                 new FileSystemWrapper(),
                 new SettingsLoader(),
                 new MessageBoxWrapper());
@@ -75,7 +76,7 @@ namespace Automation
                 tbScriptsLocation,
                 btnSetupScripLauncher,
                 btnSetupTaskMonitor,
-                new ConfigLib.SettingsLoader(),
+                new SettingsLoader(),
                 ColorButton);
 
             await bootstrapper.Init();

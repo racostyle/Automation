@@ -3,15 +3,17 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Automation.Utils.Helpers
+namespace Automation.Utils.Helpers.FileCheck
 {
-    public class FileChecker : IFileChecker
+    public class FileChecker : IFileChecker 
     {
         private readonly IFileSystemWrapper _ioWrapper;
+        private readonly IFileInfoFactory _factory;
 
-        public FileChecker(IFileSystemWrapper ioWrapper)
+        public FileChecker(IFileSystemWrapper ioWrapper, IFileInfoFactory factory)
         {
             _ioWrapper = ioWrapper;
+            _factory = factory;
         }
 
         public bool SyncLatestFileVersion(string baseLocation, string targetLocation, string fileNameWithExtension)
@@ -21,7 +23,7 @@ namespace Automation.Utils.Helpers
 
             var mostRecent = _ioWrapper.GetFiles(baseLocation, $"*{extension}")
                 .Where(x => x.Contains($"{fileName}", StringComparison.OrdinalIgnoreCase))
-                .Select(x => new FileInfo(x))
+                .Select(x => _factory.Build(x))
                 .OrderByDescending(x => x.LastWriteTime)
                 .FirstOrDefault();
 
@@ -31,7 +33,7 @@ namespace Automation.Utils.Helpers
 
             try
             {
-                if (!isUpToDate || deployedFile.Length == 0)
+                if (!isUpToDate || deployedFile == null)
                     _ioWrapper.CopyFile(mostRecent.FullName, destFileFullName, true);
             }
             catch (Exception ex)
@@ -42,7 +44,7 @@ namespace Automation.Utils.Helpers
             return _ioWrapper.FileExists(destFileFullName);
         }
 
-        private bool CheckIfDeployedFileIsLatest(FileInfo mostRecent, FileInfo deployedFile)
+        private bool CheckIfDeployedFileIsLatest(IFileInfoWrapper mostRecent, IFileInfoWrapper deployedFile)
         {
             if (deployedFile == null)
                 return false;
@@ -53,14 +55,14 @@ namespace Automation.Utils.Helpers
             return true;
         }
 
-        public FileInfo EnsureOnlyOneFileIsDeployed(string targetLocation, string fileNameWithExtension)
+        public IFileInfoWrapper EnsureOnlyOneFileIsDeployed(string targetLocation, string fileNameWithExtension)
         {
             var fileName = Path.GetFileNameWithoutExtension(fileNameWithExtension);
             var extension = Path.GetExtension(fileNameWithExtension);
 
             var deployedFiles = _ioWrapper.GetFiles(targetLocation, $"*{extension}")
               .Where(x => x.Contains($"{fileName}", StringComparison.OrdinalIgnoreCase))
-              .Select(x => new FileInfo(x))
+              .Select(x => _factory.Build(x))
               .OrderByDescending(x => x.LastWriteTime)
               .ToArray();
 
