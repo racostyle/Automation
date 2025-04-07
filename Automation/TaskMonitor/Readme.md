@@ -31,8 +31,9 @@ All configuration settings are managed in the `ExampleApp_Config.json` file.
 {
   "BaseFolder": "C:\\some\\location",
   "ExecutableName": "ExampleApp.exe",
-  "CheckInterval": 60,
   "Arguments": "Arg1,Arg2"
+  "Priority": "100",
+  "Interval": "60"
 }
 ```
 
@@ -40,8 +41,9 @@ All configuration settings are managed in the `ExampleApp_Config.json` file.
 
 - **BaseFolder**: Path to the folder containing the executable.
 - **ExecutableName**: The name of the executable file to monitor.
-- **CheckInterval**: The interval, in seconds, between checks to see if the process is running.
 - **Arguments**: Any command-line arguments to pass to the executable when it starts.
+- **Interval**: The interval, in minutes, between checks to see if the process is running.
+- **Priority**: The lower the priority number, the lower (faster) in the sequence the executable will be checked. Use the default value unless explicitly needed.
 
 ## Usage
 
