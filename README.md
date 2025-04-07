@@ -30,3 +30,12 @@ Use `Automation.exe` for easier creation or editing of configurations:
 
 ### Startup Delay
 - When `TaskMonitor` launches, it will sleep for 30 seconds to allow the environment to initialize before beginning monitoring.
+
+### Manual Instalation
+- place a shortcut to EasyScriptLauncher to startup folder. Win+R:
+  - `shell:common startup` - for all users
+  - `shell: startup` - for current user
+- Start the launcher so it will autogenerate scripts. Only thing that needs to be edited is `ScriptsFolder`. THis should location where scripts will be located. Example: `C:\\Delivery\\Automation\\Scripts`
+- If local profile add apendex to TaskMonitor. Example TaskMonitorV3_franci.ps1. Without this scripts in `shell:common startup` will not run.
+- Follow the config rules for executables described in section `Configuration Options`
+
