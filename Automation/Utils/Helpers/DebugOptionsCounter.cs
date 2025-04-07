@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Automation.Utils
+namespace Automation.Utils.Helpers
 {
     internal class DebugOptionsCounter
     {

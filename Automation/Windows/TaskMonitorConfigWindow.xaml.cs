@@ -1,5 +1,5 @@
 ﻿using Automation.ConfigurationAdapter;
-using Automation.Utils;
+using Automation.Utils.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,15 +9,17 @@ using System.Windows;
 namespace Automation
 {
     /// <summary>
-    /// Interaction logic for Window_TaskMonitor_Config.xaml
+    /// Interaction logic for TaskMonitorConfigWindow.xaml
     /// </summary>
-    public partial class Window_TaskMonitor_Config : Window
+    public partial class TaskMonitorConfigWindow : Window
     {
         private readonly VisualTreeAdapter _visualTreeAdapter;
         private readonly string _baseScriptsLocation;
         private string _configLocation;
+        private string _fileName;
+        public string FileName => _fileName;
 
-        public Window_TaskMonitor_Config(VisualTreeAdapter visualTreeAdapter, string baseScriptsLocation = "", string configLocation = "")
+        public TaskMonitorConfigWindow(VisualTreeAdapter visualTreeAdapter, string baseScriptsLocation = "", string configLocation = "")
         {
             InitializeComponent();
             _visualTreeAdapter = visualTreeAdapter;
@@ -60,7 +62,7 @@ namespace Automation
 
         private void OnBtnCancel_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = true;
+            this.DialogResult = false;
             this.Close();
         }
 
@@ -72,14 +74,14 @@ namespace Automation
                 return;
             }
 
-            var fileName = $"{Path.GetFileNameWithoutExtension(tbExecutableName.Text)}_Config.json";
-            _configLocation = Path.Combine(_baseScriptsLocation, fileName);
+            _fileName = $"{Path.GetFileNameWithoutExtension(tbExecutableName.Text)}_Config.json";
+            _configLocation = Path.Combine(_baseScriptsLocation, _fileName);
 
             var config = _visualTreeAdapter.Pack(this);
             var json = JsonSerializer.Serialize(config);
             File.WriteAllText(_configLocation, json);
 
-            this.DialogResult = false;
+            this.DialogResult = true;
             this.Close();
         }
 

@@ -1,4 +1,7 @@
-﻿using Automation.Utils;
+﻿using Automation.Logging;
+using Automation.Utils;
+using Automation.Utils.Helpers;
+using Automation.Windows;
 using System.Diagnostics;
 using System.Windows;
 
@@ -9,13 +12,17 @@ namespace Automation
     /// </summary>
     public partial class DeveloperOptionsWindow : Window
     {
+        private readonly ILogger _logger;
         private readonly Deployer _deployer;
+        private readonly EnvironmentInfo _environmentInfo;
         private readonly string _scriptsLocation;
 
-        public DeveloperOptionsWindow(Deployer deployer, string scriptsLocation)
+        public DeveloperOptionsWindow(ILogger logger, Deployer deployer, EnvironmentInfo environmentInfo, string scriptsLocation)
         {
             InitializeComponent();
+            _logger = logger;
             _deployer = deployer;
+            _environmentInfo = environmentInfo;
             _scriptsLocation = scriptsLocation;
             HideOverlay();
         }
@@ -26,7 +33,7 @@ namespace Automation
                 return;
 
             ShowOverlay();
-            var result = await _deployer.UpdateEasyScriptLauncher(_scriptsLocation, new ConfigLib.SettingsLoader());
+            var result = await _deployer.SyncEasyScriptLauncher(_scriptsLocation);
             cbhDoUpdate.IsChecked = false;
             HideOverlay();
         }
@@ -53,8 +60,14 @@ namespace Automation
         {
             var process = new Process();
             process.StartInfo.FileName = "explorer.exe";
-            process.StartInfo.Arguments = _deployer.GetCommonStartupFolderPath();
+            process.StartInfo.Arguments = _environmentInfo.GetCommonStartupFolderPath();
             process.Start();
+        }
+
+        private void OnBtnShowLog_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new LogWindow(_logger);
+            window.Show();
         }
     }
 }

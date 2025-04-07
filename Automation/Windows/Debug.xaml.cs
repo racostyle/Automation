@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Automation.Utils.Helpers;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -12,14 +13,14 @@ namespace Automation.Windows
     {
         private readonly Window _parent;
         private readonly string _scriptsLocation;
-        private readonly string _commonStartupLocation;
+        private readonly EnvironmentInfo _environmentInfo;
 
-        public DebugWindow(Window parent, string scriptsLocation, string commonStartupLocation)
+        public DebugWindow(Window parent, string scriptsLocation, EnvironmentInfo environmentInfo)
         {
             InitializeComponent();
             _parent = parent;
             _scriptsLocation = scriptsLocation;
-            _commonStartupLocation = commonStartupLocation;
+            _environmentInfo = environmentInfo;
             _parent.LocationChanged += OnParent_LocationChanged;
             SetPosition();
         }
@@ -44,7 +45,7 @@ namespace Automation.Windows
         private void tbOpenStartup_Click(object sender, RoutedEventArgs e)
         {
             if (Directory.Exists(_scriptsLocation))
-                Process.Start("explorer.exe", _commonStartupLocation);
+                Process.Start("explorer.exe", _environmentInfo.GetCommonStartupFolderPath());
         }
 
     }

@@ -1,11 +1,13 @@
 ﻿using Automation.ConfigurationAdapter;
+using Automation.Logging;
 using Automation.Utils;
-using System;
-using System.Collections.Generic;
+using Automation.Utils.Helpers;
+using Automation.Utils.Helpers.FileCheck;
 using Automation.Windows;
+using ConfigLib;
+using System;
 using System.IO;
 using System.Security.Principal;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -18,10 +20,12 @@ namespace Automation
     public partial class MainWindow : Window
     {
         private readonly DebugOptionsCounter _debugCounter;
-        private readonly ComboBoxWrapper_TaskMonitorConfigs _configsWrapper;
-        private readonly VisualTreeAdapter _visualTreeAdapter;
+        private readonly TaskMonitorConfigsComboBoxWrapper _configsWrapper;
         private readonly Deployer _deployer;
+        private readonly SettingsHandler _settingsHandler;
+        private readonly EnvironmentInfo _environmentInfo;
         private Window _debugWindow;
+        private readonly Logger _logger;
 
         public MainWindow()
         {
@@ -32,117 +36,55 @@ namespace Automation
             }
 
             InitializeComponent();
+            ShowOverlay();
 
-            _configsWrapper = new ComboBoxWrapper_TaskMonitorConfigs(cbbConfigs);
-            _deployer = new Deployer(new SimpleShellExecutor());
-
-            _visualTreeAdapter = new VisualTreeAdapterBuilder()
+            var visualTreeAdapter = new VisualTreeAdapterBuilder()
                 .Add_HandlerTextBox()
                 .Add_HandlerCheckBox()
                 .ConfigureToUsePrefixes(false)
                 .Build();
 
+            _logger = new Logger();
 
-            _deployer = new Deployer(new SimpleShellExecutor());
+            _settingsHandler = new SettingsHandler(visualTreeAdapter, _logger);
+            _configsWrapper = new TaskMonitorConfigsComboBoxWrapper(cbbConfigs);
+            _environmentInfo = new EnvironmentInfo();
+            _deployer = new Deployer(
+                _logger,
+                new SimpleShellExecutor(_logger),
+                _environmentInfo,
+                new FileChecker(_logger, new FileSystemWrapper(), new FileInfoFactory()),
+                new FileSystemWrapper(),
+                new SettingsLoader(),
+                new MessageBoxWrapper());
+
             _debugCounter = new DebugOptionsCounter();
-
         }
-
-        public static bool IsRunningAsAdministrator()
-        {
-            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
-            {
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
-                return principal.IsInRole(WindowsBuiltInRole.Administrator);
-            }
-        }
-
 
         #region CLOSED & LOADED HANDLERS
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (File.Exists("appsettings.json"))
-            {
-                var json = File.ReadAllText("appsettings.json");
-                var config = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+            var bootstrapper = new Bootstrapper(
+                this,
+                _settingsHandler,
+                _deployer,
+                tbScriptsLocation,
+                btnSetupScripLauncher,
+                btnSetupTaskMonitor,
+                new SettingsLoader(),
+                ColorButton);
 
-                _visualTreeAdapter.Unpack(this, config);
-
-                var result = await _deployer.CheckEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
-                ColorButton(result, btnSetupScripLauncher);
-
-                result = _deployer.CheckTaskMonitor(tbScriptsLocation.Text);
-                ColorButton(result, btnSetupTaskMonitor);
-
-                HideOverlay();
-            }
-
-            if (!CheckScriptsLocation())
-            {
-                var json = File.ReadAllText("defLocSettings.Json");
-                var settings = JsonSerializer.Deserialize<Dictionary<string, string>>( json);
-
-                tbScriptsLocation.Text = settings["DEFAULT_SCRIPTS_LOCATION"];
-
-                if (!Directory.Exists(tbScriptsLocation.Text))
-                {
-                    Directory.CreateDirectory(tbScriptsLocation.Text);
-                    MessageBox.Show($"Directory '{tbScriptsLocation.Text}' was created");
-                }
-
-                var recurringPath = Path.Combine(settings["DEFAULT_SCRIPTS_LOCATION"], settings["RECURRING_SCRIPTS_LOCATION"]);
-                if (!Directory.Exists(recurringPath))
-                {
-                    Directory.CreateDirectory(recurringPath);
-                    MessageBox.Show($"Directory '{recurringPath}' was created");
-                }
-
-                try
-                {
-                    _deployer.ChangeScriptLauncherSettings(tbScriptsLocation.Text);
-                    SaveConfig();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("EasyScriptLauncher_Settings.json could not be saved!" + Environment.NewLine + ex.Message);
-                }
-            }
+            await bootstrapper.Init();
 
             LoadConfigs();
-
             HideOverlay();
-        }
-
-        private bool CheckScriptsLocation()
-        {
-            bool result = true;
-            if (string.IsNullOrEmpty(tbScriptsLocation.Text))
-                result = false;
-            if (!Directory.Exists(tbScriptsLocation.Text))
-                result = false;
-            return result;
         }
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            SaveConfig();
+            _settingsHandler.Pack(this);
+            _logger.Dispose();
             _debugWindow?.Close();
-        }
-
-        private Dictionary<string,string> SaveConfig()
-        {
-            var config = _visualTreeAdapter.Pack(this);
-
-            var text = JsonSerializer.Serialize(config);
-            try
-            {
-                File.WriteAllText("appsettings.json", text);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Could not create config! ERROR: " + ex.Message);
-            }
-            return config;
         }
 
         #endregion
@@ -159,8 +101,11 @@ namespace Automation
                 if (string.IsNullOrEmpty(configLocation))
                     return;
 
-                Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_visualTreeAdapter, tbScriptsLocation.Text, configLocation);
+                TaskMonitorConfigWindow secWindow = new TaskMonitorConfigWindow(_settingsHandler.VisualTreeAdapter, tbScriptsLocation.Text, configLocation);
                 secWindow.ShowDialog();
+
+                if (secWindow.DialogResult == true)
+                    _logger.Log($"Config '{secWindow.FileName}' edited successfully");
             }
             catch (Exception ex)
             {
@@ -175,21 +120,46 @@ namespace Automation
                 if (!BaseScriptLocationSafetyCheck())
                     return;
 
-                Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_visualTreeAdapter, tbScriptsLocation.Text, string.Empty);
+                TaskMonitorConfigWindow secWindow = new TaskMonitorConfigWindow(_settingsHandler.VisualTreeAdapter, tbScriptsLocation.Text, string.Empty);
                 secWindow.ShowDialog();
 
-                _configsWrapper.Load(tbScriptsLocation.Text);
+                if (secWindow.DialogResult == true) 
+                {
+                    _configsWrapper.Load(tbScriptsLocation.Text);
+                    _logger.Log($"Config '{secWindow.FileName}' created");
+                }
+               
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+                _logger.Log($"Config creation failed. Error {ex.Message}");
+            }
+        }
+
+        private void OnBtnDeleteAutomationScript_Click(object sender, RoutedEventArgs e)
+        {
+            var config = cbbConfigs.Text;
+            if (!string.IsNullOrEmpty(config))
+            {
+                if (File.Exists(config))
+                {
+                    var dialog = MessageBox.Show($"Delete '{Path.GetFileName(config)}'?", "Delete config", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (dialog == MessageBoxResult.Yes)
+                    {
+                        File.Delete(config);
+                        cbbConfigs.Items.Remove(config);
+                        cbbConfigs.SelectedIndex = 0;
+                        _logger.Log($"Config '{config}' deleted");
+                    }
+                }
             }
         }
 
         private async void OnBtnSetupScripLauncher_Click(object sender, RoutedEventArgs e)
         {
             ShowOverlay();
-            var result = await _deployer.SetupEasyScriptLauncher(tbScriptsLocation.Text, new ConfigLib.SettingsLoader());
+            var result = await _deployer.SyncEasyScriptLauncher(tbScriptsLocation.Text);
             ColorButton(result, btnSetupScripLauncher);
             HideOverlay();
         }
@@ -200,7 +170,7 @@ namespace Automation
             if (!BaseScriptLocationSafetyCheck())
                 return;
 
-            var result = _deployer.SetupTaskMonitor(tbScriptsLocation.Text);
+            var result = _deployer.SyncTaskMonitor(tbScriptsLocation.Text);
             ColorButton(result, btnSetupTaskMonitor);
             HideOverlay();
         }
@@ -217,8 +187,8 @@ namespace Automation
             if (Directory.Exists(dialogResult))
             {
                 tbScriptsLocation.Text = dialogResult;
-                _deployer.ChangeScriptLauncherSettings(tbScriptsLocation.Text);
-                SaveConfig();
+                _deployer.CheckScriptLauncherSettings(tbScriptsLocation.Text);
+                _settingsHandler.Pack(this);
                 MessageBox.Show($"Scripts location changed to: {Environment.NewLine}'{dialogResult}");
             }
             else
@@ -229,7 +199,7 @@ namespace Automation
         {
             try
             {
-                var executor = new SimpleShellExecutor();
+                var executor = new SimpleShellExecutor(_logger);
                 executor.ExecuteExe(Path.Combine(Directory.GetCurrentDirectory(), "EasyScriptLauncher.exe"));
             }
             catch (Exception ex)
@@ -242,20 +212,30 @@ namespace Automation
         {
             if (_debugWindow == null)
             {
-                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, _deployer.GetCommonStartupFolderPath());
+                _debugWindow = new DebugWindow(this, tbScriptsLocation.Text, _environmentInfo);
                 _debugWindow.Closed += DebugWindow_Closed!;
                 _debugWindow.Show();
             }
         }
         private void DebugWindow_Closed(object sender, EventArgs e)
         {
-            _debugWindow.Closed -= DebugWindow_Closed!; 
-            _debugWindow = null; 
+            _debugWindow.Closed -= DebugWindow_Closed!;
+            _debugWindow = null;
         }
 
         #endregion
 
         #region AUXILIARY
+
+        public static bool IsRunningAsAdministrator()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+
         private bool BaseScriptLocationSafetyCheck()
         {
             if (!Directory.Exists(tbScriptsLocation.Text))
@@ -300,7 +280,7 @@ namespace Automation
         {
             if (_debugCounter.DoOpenWindow())
             {
-                var window = new DeveloperOptionsWindow(_deployer, tbScriptsLocation.Text);
+                var window = new DeveloperOptionsWindow(_logger, _deployer, _environmentInfo, tbScriptsLocation.Text);
                 window.ShowDialog();
             }
         }
