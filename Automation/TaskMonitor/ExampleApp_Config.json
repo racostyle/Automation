@@ -1,6 +1,7 @@
 {
-    "BaseFolder": "C:\\some\\location",
-    "ExecutableName": "ExampleApp.exe",
-    "CheckInterval": "60",
-    "Arguments": ""
+  "BaseFolder": "C:\\some\\location",
+  "ExecutableName": "ExampleApp.exe",
+  "Arguments": "",
+  "Priority": "100",
+  "Interval": "60"
 }
