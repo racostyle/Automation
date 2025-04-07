@@ -46,6 +46,8 @@
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
@@ -66,22 +68,23 @@
             VerticalAlignment="Stretch"
             VerticalContentAlignment="Center"
             HorizontalAlignment="Stretch" 
-            HorizontalContentAlignment="Right">Scripts Location:</Label>
+            HorizontalContentAlignment="Right">Scripts:</Label>
         
-        <TextBox Grid.Row="0" Grid.Column="1" Name="tbScriptsLocation" Grid.ColumnSpan="3" IsReadOnly="True" MouseDoubleClick="OnTbScriptsLocation_MouseDoubleClick"/>
-        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap">If buttons are Green checks were ok an nothing is needed. If red click the corresponding button and the program will fix it for you.</TextBlock>
+        <TextBox Grid.Row="0" Grid.Column="1" Name="tbScriptsLocation" Grid.ColumnSpan="5" IsReadOnly="True" MouseDoubleClick="OnTbScriptsLocation_MouseDoubleClick"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" TextWrapping="Wrap">If buttons are Green checks were ok an nothing is needed. If red click the corresponding button and the program will fix it for you.</TextBlock>
 
-        <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Name="btnSetupScripLauncher" Click="OnBtnSetupScripLauncher_Click">Setup EasyScriptLauncher</Button>
-        <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Name="btnSetupTaskMonitor" Click="OnBtnSetupTaskMonitor_Click">Setup TaskMonitor</Button>
+        <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Name="btnSetupScripLauncher" Click="OnBtnSetupScripLauncher_Click">Setup EasyScriptLauncher</Button>
+        <Button Grid.Row="2" Grid.Column="3" Grid.ColumnSpan="3" Name="btnSetupTaskMonitor" Click="OnBtnSetupTaskMonitor_Click">Setup TaskMonitor</Button>
 
-        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap">This tool is for easier setup of .exe programs we want to monitor. Each program needs its own script in default Scripts location (was autofilled).</TextBlock>
+        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6" TextWrapping="Wrap">This tool is for easier setup of .exe programs we want to monitor. Each program needs its own script in default Scripts location (was autofilled).</TextBlock>
 
         <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Name="btnEditAutomationScript" Click="OnBtnEditAutomationScript_Click">Edit Automation Script</Button>
         <Button Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Name="btnNewAutomationScript" Click="OnBtnNewAutomationScript_Click">New Automation Script</Button>
-        <ComboBox Grid.Row="6" Grid.Column="0" Name="cbbConfigs" Grid.ColumnSpan="4" />
+        <Button Grid.Row="5" Grid.Column="4" Grid.ColumnSpan="2" Name="btnDeleteAutomationScript" Click="OnBtnDeleteAutomationScript_Click">Delete Automation Script</Button>
+        <ComboBox Grid.Row="6" Grid.Column="0" Name="cbbConfigs" Grid.ColumnSpan="6" />
 
-        <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Name="btnLoadScripts" Click="OnBtnLoadScripts_Click">Load Scripts</Button>
-        <Button Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="2" Name="btnStartEasyScriptLauncher" Click="OnBtnStartEasyScriptLauncher_Click">Start Script Launcher</Button>
+        <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Name="btnLoadScripts" Click="OnBtnLoadScripts_Click">Load Scripts</Button>
+        <Button Grid.Row="7" Grid.Column="3" Grid.ColumnSpan="3" Name="btnStartEasyScriptLauncher" Click="OnBtnStartEasyScriptLauncher_Click">Start Script Launcher</Button>
 
     </Grid>
 </Window>

@@ -12,6 +12,7 @@ using System.Windows.Media;
 using Automation.Utils.Helpers;
 using ConfigLib;
 using Automation.Utils.Helpers.FileCheck;
+using Automation.Logging;
 
 namespace Automation
 {
@@ -26,6 +27,7 @@ namespace Automation
         private readonly SettingsHandler _settingsHandler;
         private readonly EnvironmentInfo _environmentInfo;
         private Window _debugWindow;
+        private readonly Logger _logger;
 
         public MainWindow()
         {
@@ -44,12 +46,14 @@ namespace Automation
                 .ConfigureToUsePrefixes(false)
                 .Build();
 
-            _settingsHandler = new SettingsHandler(visualTreeAdapter);
+            _logger = new Logger();
+
+            _settingsHandler = new SettingsHandler(visualTreeAdapter, _logger);
             _configsWrapper = new TaskMonitorConfigsComboBoxWrapper(cbbConfigs);
             _environmentInfo = new EnvironmentInfo();
             _deployer = new Deployer(
-                new SimpleShellExecutor(), 
-                _environmentInfo, 
+                new SimpleShellExecutor(),
+                _environmentInfo,
                 new FileChecker(new FileSystemWrapper(), new FileInfoFactory()),
                 new FileSystemWrapper(),
                 new SettingsLoader(),
@@ -87,24 +91,9 @@ namespace Automation
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            SaveConfig();
+            _settingsHandler.Pack(this);
+            _logger.Dispose();
             _debugWindow?.Close();
-        }
-
-        private Dictionary<string, string> SaveConfig()
-        {
-            var config = _settingsHandler.VisualTreeAdapter.Pack(this);
-
-            var text = JsonSerializer.Serialize(config);
-            try
-            {
-                File.WriteAllText("appsettings.json", text);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Could not create config! ERROR: " + ex.Message);
-            }
-            return config;
         }
 
         #endregion
@@ -123,6 +112,9 @@ namespace Automation
 
                 Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_settingsHandler.VisualTreeAdapter, tbScriptsLocation.Text, configLocation);
                 secWindow.ShowDialog();
+
+                if (secWindow.DialogResult == true)
+                    _logger.Log($"Config '{secWindow.FileName}' edited successfully");
             }
             catch (Exception ex)
             {
@@ -140,11 +132,36 @@ namespace Automation
                 Window_TaskMonitor_Config secWindow = new Window_TaskMonitor_Config(_settingsHandler.VisualTreeAdapter, tbScriptsLocation.Text, string.Empty);
                 secWindow.ShowDialog();
 
-                _configsWrapper.Load(tbScriptsLocation.Text);
+                if (secWindow.DialogResult == true) 
+                {
+                    _configsWrapper.Load(tbScriptsLocation.Text);
+                    _logger.Log($"Config '{secWindow.FileName}' created");
+                }
+               
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+                _logger.Log($"Config creation failed. Error {ex.Message}");
+            }
+        }
+
+        private void OnBtnDeleteAutomationScript_Click(object sender, RoutedEventArgs e)
+        {
+            var config = cbbConfigs.Text;
+            if (!string.IsNullOrEmpty(config))
+            {
+                if (File.Exists(config))
+                {
+                    var dialog = MessageBox.Show($"Delete '{Path.GetFileName(config)}'?", "Delete config", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (dialog == MessageBoxResult.Yes)
+                    {
+                        File.Delete(config);
+                        cbbConfigs.Items.Remove(config);
+                        cbbConfigs.SelectedIndex = 0;
+                        _logger.Log($"Config '{config}' deleted");
+                    }
+                }
             }
         }
 
@@ -180,7 +197,7 @@ namespace Automation
             {
                 tbScriptsLocation.Text = dialogResult;
                 _deployer.CheckScriptLauncherSettings(tbScriptsLocation.Text);
-                SaveConfig();
+                _settingsHandler.Pack(this);
                 MessageBox.Show($"Scripts location changed to: {Environment.NewLine}'{dialogResult}");
             }
             else
