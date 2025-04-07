@@ -15,7 +15,7 @@ For development options, click the 'Scripts Location' label 5 times. In the deve
 Designed to simplify setup and configuration editing.
 
 ### EasyScriptLauncher.exe
-Addresses issues where Windows tasks sometimes fail to trigger on machines with identical environments. This launcher starts all `.ps1` scripts in the `..\Scripts` folder, generally only including `TaskMonitor`.
+Addresses issues where Windows tasks sometimes fail to trigger on machines with identical environments. This launcher starts all `.ps1` scripts in the `..\Scripts` folder. This should generally only be `TaskMonitor`. This will happen when user logs in the machine.
 
 ### TaskMonitor
 On activation, `TaskMonitor` checks for all configuration files ending with `_Config.json` in the root folder (the folder where `TaskMonitor` is deployed). It reads these configurations and periodically checks if the executables defined in each configuration are running. It also offers the option to execute shell scripts periodically, which should be placed in `..\Scripts\RecurringScripts`.
