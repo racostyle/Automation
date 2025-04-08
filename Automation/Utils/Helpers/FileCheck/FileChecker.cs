@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Automation.Utils.Helpers.FileCheck
 {
-    public class FileChecker : IFileChecker 
+    public class FileChecker : IFileChecker
     {
         private readonly ILogger _logger;
         private readonly IFileSystemWrapper _ioWrapper;
@@ -32,13 +32,15 @@ namespace Automation.Utils.Helpers.FileCheck
 
             var deployedFile = EnsureOnlyOneFileIsDeployed(targetLocation, fileNameWithExtension);
             bool isUpToDate = CheckIfDeployedFileIsLatest(mostRecent, deployedFile);
-            var destFileFullName = Path.Combine(targetLocation, mostRecent.Name);
+            var destFileFullName = Path.Combine(targetLocation, isUpToDate ? deployedFile.Name : mostRecent.Name);
 
             try
             {
                 if (!isUpToDate || deployedFile == null)
                 {
+                    _ioWrapper.DeleteFile(deployedFile?.FullName);
                     _ioWrapper.CopyFile(mostRecent.FullName, destFileFullName, true);
+
                     _logger?.Log($"File Outdated: '{mostRecent.Name}'");
                     _logger?.Log($"Copying File: '{mostRecent.FullName}'{Environment.NewLine}To: '{destFileFullName}'");
                 }

@@ -151,6 +151,9 @@ namespace AutomationTests
             _ioWrapperMock.Setup(x => x.FileExists(It.IsAny<string>()))
                 .Returns(true);
 
+            _fileCheckerMock.Setup(x => x.EnsureOnlyOneFileIsDeployed(It.IsAny<string>(), It.IsAny<string>()))
+                .Callback(() => { });
+
             var result = _deployer.SyncTaskMonitor(scriptsLocation);
 
             Assert.That(result, Is.True);
@@ -162,12 +165,15 @@ namespace AutomationTests
             _ioWrapperMock.Setup(x => x.GetFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Array.Empty<string>());
 
+            _fileCheckerMock.Setup(x => x.EnsureOnlyOneFileIsDeployed(It.IsAny<string>(), It.IsAny<string>()))
+               .Callback(() => { });
+
             try
             {
                 _deployer.SyncTaskMonitor(scriptsLocation);
             }
-            catch (Exception ex) 
-            { 
+            catch (Exception ex)
+            {
                 Assert.Pass(ex.Message);
             }
         }
