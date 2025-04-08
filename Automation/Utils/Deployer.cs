@@ -71,13 +71,13 @@ namespace Automation.Utils
                     }
 
 
-                    _logger?.Log($"Creating new Shortcut in: {Environment.NewLine}'{startup}'{Environment.NewLine}Pointing to: '{exe}'");
+                    _logger?.Log($"Creating new Shortcut in: '{startup}'{Environment.NewLine}Pointing to: '{exe}'");
 
                     _shell.CreateShortcut(_ioWrapper.GetCurrentDirectory(), startup, $"{EASY_SCRIPT_LAUNCHER}.exe");
                     await Task.Delay(200);
                 }
                 else
-                    _logger?.Log($"Shortcut in:{Environment.NewLine}'{startup}'{Environment.NewLine}Pointing to: '{exe}'{Environment.NewLine}OK");
+                    _logger?.Log($"Shortcut in:'{startup}'{Environment.NewLine}Pointing to: '{exe}'{Environment.NewLine}OK");
             }
             catch (Exception ex)
             {

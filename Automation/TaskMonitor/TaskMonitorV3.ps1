@@ -257,7 +257,7 @@ while ($true) {
                 Set-Location $workingDir
 
                 if ($executable.EndsWith(".ps1", [StringComparison]::OrdinalIgnoreCase)) {
-                    $command = "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File `"$executable`""
+                    $command = "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File `"$executable`" -Verb RunAs"
                     if (![string]::IsNullOrEmpty($args)) {
                         $command += " $args"
                     }
@@ -270,10 +270,10 @@ while ($true) {
                     Log-Message "Attempting to start: ${$executable}" "INFO"
 
                     if (-not [string]::IsNullOrEmpty($args)) {
-                        Start-Process "${executable}" -ArgumentList "$args" -ErrorAction Stop
+                        Start-Process "${executable}" -ArgumentList "$args" -ErrorAction Stop -Verb RunAs
                     }
                     else {
-                        Start-Process "${executable}" -ErrorAction Stop
+                        Start-Process "${executable}" -ErrorAction Stop -Verb RunAs
                     }
                     Log-Message "Attempted to start ${name} using Start-Process." "INFO"
 

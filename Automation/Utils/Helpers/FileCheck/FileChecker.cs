@@ -37,7 +37,10 @@ namespace Automation.Utils.Helpers.FileCheck
             try
             {
                 if (!isUpToDate || deployedFile == null)
+                {
                     _ioWrapper.CopyFile(mostRecent.FullName, destFileFullName, true);
+                    _logger?.Log($"Copying File: '{mostRecent.FullName}'{Environment.NewLine}To: '{destFileFullName}'");
+                }
                 else
                     _logger?.Log($"Files are up to date. Files checked: '{mostRecent.Name}'");
             }
