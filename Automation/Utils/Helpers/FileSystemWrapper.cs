@@ -14,9 +14,13 @@ namespace Automation.Utils.Helpers
             return Directory.GetFiles(targetLocation);
         }
 
-        public void DeleteFile(string file)
+        public void DeleteFile(string? file)
         {
-            File.Delete(file);
+            if (string.IsNullOrEmpty(file))
+                return;
+
+            if (FileExists(file))
+                File.Delete(file);
         }
 
         public void CopyFile(string sourceFileName, string destFileName, bool overwrite = false)

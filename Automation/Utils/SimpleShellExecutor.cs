@@ -102,7 +102,8 @@ namespace Automation.Utils
                 $Shortcut.WorkingDirectory = [System.IO.Path]::GetDirectoryName($targetPath)
                 $Shortcut.Save()
                 
-                Write-Host $shortcutPath";
+                Write-Host Shortcut created: $shortcutPath
+                Write-Host Pointing to: $targetPath";
         }
 
         private string BuildVerifyShortcutScript(string target, string shortcutDestination, string programNameWithExtension)
@@ -121,11 +122,10 @@ namespace Automation.Utils
                 $Shortcut = $WshShell.CreateShortcut($shortcutPath)
 
                 if ($Shortcut.TargetPath -eq $targetPath) {{
-                    Write-Host OK
+                    Write-Host Shortcut target is OK
                 }} else {{
-                    Write-Host INVALID
-                }}
-            ";
+                    Write-Host Shortcut target is INVALID
+                }}";
         }
         #endregion
     }

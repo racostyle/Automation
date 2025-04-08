@@ -71,13 +71,13 @@ namespace Automation.Utils
                     }
 
 
-                    _logger?.Log($"Creating new Shortcut in: {Environment.NewLine}'{startup}'{Environment.NewLine}Pointing to: '{exe}'");
+                    _logger?.Log($"Creating new Shortcut in: '{startup}'{Environment.NewLine}Pointing to: '{exe}'");
 
                     _shell.CreateShortcut(_ioWrapper.GetCurrentDirectory(), startup, $"{EASY_SCRIPT_LAUNCHER}.exe");
                     await Task.Delay(200);
                 }
                 else
-                    _logger?.Log($"Shortcut in:{Environment.NewLine}'{startup}'{Environment.NewLine}Pointing to: '{exe}'{Environment.NewLine}OK");
+                    _logger?.Log($"Shortcut in:'{startup}'{Environment.NewLine}Pointing to: '{exe}'{Environment.NewLine}OK");
             }
             catch (Exception ex)
             {
@@ -120,20 +120,21 @@ namespace Automation.Utils
         public bool SyncTaskMonitor(string scriptsLocation)
         {
             var sourceTaskMonitorPath = Path.Combine(_ioWrapper.GetCurrentDirectory(), TASK_MONITOR);
-            var file = Path.GetFileName(_ioWrapper.GetFiles(sourceTaskMonitorPath, "*.ps1")
-                .Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase))
-                .FirstOrDefault());
+            _fileChecker.EnsureOnlyOneFileIsDeployed(scriptsLocation, $"{TASK_MONITOR}.ps1");
 
-            if (string.IsNullOrEmpty(file))
+            var areMonitorsAvailable = _ioWrapper.GetFiles(sourceTaskMonitorPath, "*.ps1")
+                .Where(x => x.Contains($"{TASK_MONITOR}", StringComparison.OrdinalIgnoreCase))
+                .Any();
+
+            if (!areMonitorsAvailable)
             {
                 _logger?.Log($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
                 throw new Exception($"FatalError: {TASK_MONITOR} could not be found. Rebuild or download the app again!");
             }
 
             var syncResult = _fileChecker.SyncLatestFileVersion(sourceTaskMonitorPath, scriptsLocation, $"{TASK_MONITOR}.ps1");
-            var deployedScriptPath = Path.Combine(scriptsLocation, Path.GetFileName(file));
 
-            return _ioWrapper.FileExists(deployedScriptPath) && syncResult;
+            return syncResult;
         }
         #endregion
     }
