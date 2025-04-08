@@ -265,7 +265,6 @@ while ($true) {
                     # Log-Message "${name} Executed." "INFO" 
                 } else {
                     Log-Message "${name} is not running" "WARNING"
-                    Log-Message "Attempting to start: ${executable}" "INFO"
 
                     if (-not [string]::IsNullOrEmpty($args)) {
                         Start-Process "${executable}" -ArgumentList "${args}" -ErrorAction Stop -Verb RunAs
