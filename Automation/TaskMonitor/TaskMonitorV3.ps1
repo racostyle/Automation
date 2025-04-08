@@ -263,19 +263,20 @@ while ($true) {
                     }
                     Invoke-Expression $command
                     # Log-Message "${name} Executed." "INFO" 
-                    Start-Sleep -Seconds 5
-                    $delay = $delay + 5
                 } else {
                     Log-Message "${name} is not running" "WARNING"
-                    Log-Message "Attempting to start: ${$executable}" "INFO"
+                    Log-Message "Attempting to start: ${executable}" "INFO"
 
                     if (-not [string]::IsNullOrEmpty($args)) {
-                        Start-Process "${executable}" -ArgumentList "$args" -ErrorAction Stop -Verb RunAs
+                        Start-Process "${executable}" -ArgumentList "${args}" -ErrorAction Stop -Verb RunAs
                     }
                     else {
                         Start-Process "${executable}" -ErrorAction Stop -Verb RunAs
                     }
                     Log-Message "Attempted to start ${name} using Start-Process." "INFO"
+
+                    Start-Sleep -Seconds 1
+                    $delay = $delay + 1
 
                     if (IsProcess $name) {
                         Log-Message "${name} started successfully." "INFO"
@@ -283,9 +284,9 @@ while ($true) {
                     else {
                         Log-Message "Failed to start ${name}: $_" "ERROR"
                     }
-                    Start-Sleep -Seconds 5
-                    $delay = $delay + 5
                 }
+                Start-Sleep -Seconds 5
+                $delay = $delay + 5
             }
         }
         catch {

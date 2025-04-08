@@ -6,11 +6,11 @@
         xmlns:local="clr-namespace:Automation.Windows"
         mc:Ignorable="d"
         Title="Log"
-        Width="600"
-        Height="600"
+        Width="700"
+        Height="500"
         Background="Black"
-        MinWidth="600"
-        MinHeight="600"
+        MinWidth="700"
+        MinHeight="500"
         WindowStartupLocation="CenterScreen">
     
     <Grid>
@@ -25,7 +25,6 @@
             Grid.Column="0" 
             Grid.Row="0" 
             Name="tbLog"
-            Text="Log"
             Foreground="White"
             Background="Black"
             Margin="2,2,2,2"
