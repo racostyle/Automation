@@ -8,9 +8,9 @@ namespace Automation.Utils
 {
     public class SimpleShellExecutor : ISimpleShellExecutor
     {
-        private Logger _logger;
+        private ILogger _logger;
 
-        public SimpleShellExecutor(Logger logger)
+        public SimpleShellExecutor(ILogger logger)
         {
             _logger = logger;
         }
