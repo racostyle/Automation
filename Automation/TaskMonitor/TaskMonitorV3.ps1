@@ -16,26 +16,7 @@ function Restart-Script {
     exit
 }
 
-# Check if running as administrator
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Restart-Script -runAsAdmin $true
-    exit
-}
-
 $host.UI.RawUI.WindowTitle = "Monitoring Script"
-
-# Get the current process ID
-$currentProcessId = $PID
-$scriptName = Split-Path -Leaf $MyInvocation.MyCommand.Path
-# Check if any other process is running the same script
-$existingProcess = Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object {
-    $_.CommandLine -like "*$scriptName*" -and $_.ProcessId -ne $currentProcessId
-}
-# If such a process exists, exit the script
-if ($existingProcess) {
-    Write-Host "Another instance of '$scriptName' is already running. Exiting..."
-    exit
-}
 
 # Is process running
 function IsProcess {
@@ -74,6 +55,12 @@ function Log-Message {
     }
 }
 
+# Check if running as administrator
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Restart-Script -runAsAdmin $true
+    exit
+}
+
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $configFiles = Get-ChildItem -Path $scriptDirectory -Filter "*_Config.json" -File
 
@@ -86,66 +73,40 @@ foreach ($configFile in $configFiles) {
 
     $configPath = Join-Path -Path $scriptDirectory -ChildPath $configFile
     $config = Get-Content $configPath -Force | ConvertFrom-Json
+    $BaseFolder = $config.BaseFolder
+    $ExecutableName = $config.ExecutableName
 
-    try {
-        $BaseFolder = $config.BaseFolder
-        $ExecutableName = $config.ExecutableName
-        $Arguments = $config.Arguments
-        [int]$Priority = 0
-        [int]$Interval = 1
+    $Arguments = $config.Arguments
 
-        if ($config.PSObject.Properties.Name -contains 'Priority') {
-            $success = [int]::TryParse($config.Priority, [ref]$Priority)
-        }
-
-        if ($config.PSObject.Properties.Name -contains 'Interval') {
-            $success = [int]::TryParse($config.Interval, [ref]$Interval)
-        }
-    } catch {
-        Write-Host "Problem with reading $configFile. Config will be skipped"
-        continue
+    if (-not (Test-Path -Path $BaseFolder -PathType Container)) {
+        Log-Message "The BaseFolder in $($configFile) is not a valid folder or directory. It may point to a script or executable." "ERROR"
+        exit 1
     }
 
-    $expectedExecutablePath = Join-Path -Path $BaseFolder -ChildPath $ExecutableName
-
-    # Check if the executable exists at the expected location
-    if (-not (Test-Path -Path $expectedExecutablePath)) {
-        Log-Message "The expected executable $expectedExecutablePath does not exist, starting search..." "INFO"
-        # If not found, proceed with deep search
-        $ProgramPath = Get-ChildItem -LiteralPath $BaseFolder -Filter $ExecutableName -Recurse -File -ErrorAction SilentlyContinue |
-                       Sort-Object LastWriteTime -Descending |
-                       Select-Object -First 1 -ExpandProperty FullName
-    } else {
-        $ProgramPath = $expectedExecutablePath
-        Log-Message "Executable file found at expected location: $ProgramPath"
-    }
+    $ProgramPath = Get-ChildItem -LiteralPath  $BaseFolder -Filter $ExecutableName -Recurse -File -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1 -ExpandProperty FullName
 
     if (Test-Path -Path $ProgramPath) {
-        Log-Message "Executable file confirmed: $ProgramPath"
+        Log-Message "Executable file found: $ProgramPath"
     }
     else {
-        Log-Message "Executable file does not exist after search: $ProgramPath"
+        Log-Message "Executable file does not exist: $ProgramPath"
         continue
     }
 
     $ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($ProgramPath)
     $WorkingDirectory = Split-Path -Path $ProgramPath
+    Log-Message "Working directory: $WorkingDirectory"
 
     $programInfo = [PSCustomObject]@{
         ProgramPath      = $ProgramPath
         ProgramName      = $ProgramName
-        ExecutableName   = $ExecutableName
         WorkingDirectory = $WorkingDirectory
         Arguments        = $Arguments
-        Priority         = $Priority
-        BaseInterval     = $Interval
-        ModInterval      = $Interval
     }
     $programsList += $programInfo
 }
-
-# Sort the programs list by Priority from lowest to highest
-$programsList = $programsList | Sort-Object -Property Priority
 
 #Minimize the window
 Add-Type @"
@@ -165,27 +126,12 @@ $SW_MINIMIZE = 6
 $hWnd = [Win32]::GetForegroundWindow()
 $null = [Win32]::ShowWindow($hWnd, $SW_MINIMIZE) # null will prevent true being printed in console when window is minimized
 
-$criticalOperationFile = "C:\WORKING.txt"
-function IsCriticalOperationRunning {
-    if (Test-Path $criticalOperationFile -PathType Leaf) {
-        $result = $true
-    }
-    else {
-        $result = $false
-    }
-    $result
-}
-
-#Safetycheck: delete leftover operation file at startup just in case
-if (IsCriticalOperationRunning){
-    Remove-Item $criticalOperationFile -Force
-}
-
 Write-Host "--------------------------------------------------------------------------------------------" 
 
 Log-Message "About to sleep for 30 seconds to ensure environment is set"
 Start-Sleep -Seconds 30 #Delay before loop
 Log-Message "Resumed after sleeping for 30 seconds"
+
 
 #InfoCheck. This is outside of the loop so it does not get spammed every interval
 foreach ($program in $programsList) {
@@ -195,34 +141,17 @@ foreach ($program in $programsList) {
     }
 }
 
-# Initialize the tick variable
-[int]$tick = 1
-
-# Create and configure the timer
-$timer = New-Object System.Timers.Timer
-$timer.Interval = 60000
-$timer.AutoReset = $true
-
-# Register an event for the timer's Elapsed event
-Register-ObjectEvent -InputObject $timer -EventName Elapsed -Action {
-    $global:tick++
-} | Out-Null
-
-# Start the timer
-$timer.Start()
-
-# Register a cleanup event for when the script exits
-Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
-    $timer.Stop()
-    $timer.Dispose()
-    Unregister-Event -SourceIdentifier * 
-} | Out-Null
-
-Write-Host ""
-Write-Host "Main Loop Started"
-Write-Host ""
-
 $CheckInterval = 60
+
+function IsCriticalOperationRunning {
+    if (Test-Path "C:\WORKING.txt" -PathType Leaf) {
+        $result = $true
+    }
+    else {
+        $result = $false
+    }
+    $result
+}
 
 #Execution
 while ($true) {
@@ -234,57 +163,54 @@ while ($true) {
         continue
     } 
 
-    for ($i = 0; $i -lt $programsList.Count; $i++) {
-
-        if ($tick -ge $programsList[$i].ModInterval) {
-            $programsList[$i].ModInterval += $programsList[$i].BaseInterval
-        } else {
-            continue
-        }
-
+    foreach ($program in $programsList) {
         try {
-            $name = $programsList[$i].ProgramName
-            $args = $programsList[$i].Arguments
-            $workingDir = $programsList[$i].WorkingDirectory
-            $executable = $programsList[$i].ExecutableName
+            $name = $program.ProgramName
+            $args = $program.Arguments
+            $workingDir = $program.WorkingDirectory
             
             if (-not (IsProcess $name)) {
 
-                if (IsCriticalOperationRunning) {
-                    break
-                }
+                Log-Message "${name} is not running" "WARNING"
+                Log-Message "Attempting to start: ${ProgramPath}" "INFO"
 
                 Set-Location $workingDir
+                if (-not [string]::IsNullOrEmpty($args)) {
+                    Start-Process "${name}.exe" -ArgumentList "$args" -ErrorAction Stop
+                }
+                else {
+                    Start-Process "${name}.exe" -ErrorAction Stop
+                }
+                Log-Message "Attempted to start ${name} using Start-Process." "INFO"
+                Start-Sleep -Seconds 5
+                $delay = $delay + 5
 
-                if ($executable.EndsWith(".ps1", [StringComparison]::OrdinalIgnoreCase)) {
-                    $command = "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File `"$executable`""
-                    if (![string]::IsNullOrEmpty($args)) {
-                        $command += " $args"
-                    }
-                    Invoke-Expression $command
-                    # Log-Message "${name} Executed." "INFO" 
-                    Start-Sleep -Seconds 5
-                    $delay = $delay + 5
-                } else {
-                    Log-Message "${name} is not running" "WARNING"
-                    Log-Message "Attempting to start: ${$executable}" "INFO"
+                if (IsCriticalOperationRunning) {
+                    break
+                } 
 
+                if (-not (IsProcess $name)) {
+                    Set-Location $workingDir
                     if (-not [string]::IsNullOrEmpty($args)) {
-                        Start-Process "${executable}" -ArgumentList "$args" -ErrorAction Stop
+                        . .\"${name}.exe" $args
                     }
                     else {
-                        Start-Process "${executable}" -ErrorAction Stop
+                        . .\"${name}.exe"
                     }
-                    Log-Message "Attempted to start ${name} using Start-Process." "INFO"
-
-                    if (IsProcess $name) {
-                        Log-Message "${name} started successfully." "INFO"
-                    }
-                    else {
-                        Log-Message "Failed to start ${name}: $_" "ERROR"
-                    }
+                    Log-Message "Attempted to start ${name} using dot sourcing (.\)." "INFO"
                     Start-Sleep -Seconds 5
                     $delay = $delay + 5
+
+                    if (IsCriticalOperationRunning) {
+                        break
+                    } 
+                }
+
+                if (IsProcess $name) {
+                    Log-Message "${name} started successfully." "INFO"
+                }
+                else {
+                    Log-Message "Failed to start ${name}: $_" "ERROR"
                 }
             }
         }
