@@ -91,7 +91,7 @@ foreach ($configFile in $configFiles) {
         $BaseFolder = $config.BaseFolder
         $ExecutableName = $config.ExecutableName
         $Arguments = $config.Arguments
-        [int]$Priority = 0
+        [int]$Priority = 100
         [int]$Interval = 1
 
         if ($config.PSObject.Properties.Name -contains 'Priority') {
@@ -139,13 +139,18 @@ foreach ($configFile in $configFiles) {
         Arguments        = $Arguments
         Priority         = $Priority
         BaseInterval     = $Interval
-        ModInterval      = $Interval
+        ModInterval      = 0
     }
     $programsList += $programInfo
 }
 
 # Sort the programs list by Priority from lowest to highest
 $programsList = $programsList | Sort-Object -Property Priority
+Write-Host ("`nProgram Execution order:")
+foreach ($item in $programsList)
+{
+     Write-Host ("Priority: " + $item.Priority + "   | Program: " + $item.ProgramName)
+}
 
 #Minimize the window
 Add-Type @"
@@ -236,9 +241,10 @@ while ($true) {
 
     for ($i = 0; $i -lt $programsList.Count; $i++) {
 
-        if ($tick -ge $programsList[$i].ModInterval) {
-            $programsList[$i].ModInterval += $programsList[$i].BaseInterval
+        if ($programsList[$i].ModInterval -le 0) {
+            $programsList[$i].ModInterval = $programsList[$i].BaseInterval
         } else {
+            $programsList[$i].ModInterval -= $tick
             continue
         }
 
@@ -293,6 +299,7 @@ while ($true) {
         }
     }
 
+    $tick = 0
     $timeToSleep = $CheckInterval - $delay
     if ($timeToSleep -lt 5) {
         $timeToSleep = 5
