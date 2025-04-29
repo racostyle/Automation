@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
-		<Version>1.1.1</Version>
-		<AssemblyInformationalVersion>1.1.1</AssemblyInformationalVersion>
+		<Version>1.1.2</Version>
+		<AssemblyInformationalVersion>1.1.2</AssemblyInformationalVersion>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<ApplicationIcon>Icon.ico</ApplicationIcon>
