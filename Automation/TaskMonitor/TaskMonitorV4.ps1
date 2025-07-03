@@ -38,32 +38,44 @@ if ($existingProcess) {
 }
 
 # Is process running
-function IsProcess {
+function IsProcessByPath {
     param (
-        [string]$ProgramName
+        [string]$ProgramPath
     )
-    $process = Get-Process -Name $ProgramName -ErrorAction SilentlyContinue
-    if ($process) {
-        return $true
-    }
-    else {
-        return $false
-    }
+    
+    $exeName = [System.IO.Path]::GetFileNameWithoutExtension($ProgramPath)
+    return Get-Process -Name $exeName -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.Path -eq $ProgramPath -or $_.MainModule.FileName -eq $ProgramPath
+        }
 }
+
+$LOG_TAG_INFO = "INFO"
+$LOG_TAG_WARNING = "WARNING"
+$LOG_TAG_ERROR = "ERROR"
+$LOG_TAG_EXECUTION = "EXECUTION"
+$LOG_TAG_OK = "OK"
 
 # Logging
 $MaxLogLines = 200
 function Log-Message {
     param (
         [string]$message,
-        [string]$logLevel = "INFO"
+        [string]$logLevel
     )
 
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $logEntry = "$timestamp [$logLevel] $message"
 
     Add-Content -Path $LogFilePath -Value $logEntry
-    Write-Host $logEntry
+
+    switch ($logLevel) {
+        $LOG_TAG_WARNING   { Write-Host $logEntry -ForegroundColor Yellow; break }
+        $LOG_TAG_ERROR     { Write-Host $logEntry -ForegroundColor Red; break }
+        $LOG_TAG_EXECUTION { Write-Host $logEntry -ForegroundColor Cyan; break }
+        $LOG_TAG_OK        { Write-Host $logEntry -ForegroundColor Green; break }
+        default            { Write-Host $logEntry -ForegroundColor White }
+    }
 
     # Check if log file needs trimming
     $logLines = Get-Content -Path $LogFilePath
@@ -77,8 +89,8 @@ function Log-Message {
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $configFiles = Get-ChildItem -Path $scriptDirectory -Filter "*_Config.json" -File
 
-$scriptName = [System.IO.Path]::GetFileNameWithoutExtension($scriptDirectory)
-$LogFileName = "$scriptName" + "_Log.txt"
+$logPrefix = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)
+$LogFileName = "$logPrefix" + "_Log.txt"
 $LogFilePath = Join-Path -Path $scriptDirectory -ChildPath $LogFileName
 
 $programsList = @()
@@ -91,18 +103,11 @@ foreach ($configFile in $configFiles) {
         $BaseFolder = $config.BaseFolder
         $ExecutableName = $config.ExecutableName
         $Arguments = $config.Arguments
-        [int]$Priority = 100
-        [int]$Interval = 1
-
-        if ($config.PSObject.Properties.Name -contains 'Priority') {
-            $success = [int]::TryParse($config.Priority, [ref]$Priority)
-        }
-
-        if ($config.PSObject.Properties.Name -contains 'Interval') {
-            $success = [int]::TryParse($config.Interval, [ref]$Interval)
-        }
+        [int]$Priority = if ($config.PSObject.Properties.Name -contains 'Priority') { [int]$config.Priority } else { 100 }
+        [int]$Interval = if ($config.PSObject.Properties.Name -contains 'Interval') { [int]$config.Interval } else { 1 }
     } catch {
-        Write-Host "Problem with reading $configFile. Config will be skipped"
+        Log-Message "Problem with reading $configFile. Config will be skipped" $LOG_TAG_WARNING
+        Write-Host "Error: $_"
         continue
     }
 
@@ -110,22 +115,23 @@ foreach ($configFile in $configFiles) {
 
     # Check if the executable exists at the expected location
     if (-not (Test-Path -Path $expectedExecutablePath)) {
-        Log-Message "The expected executable $expectedExecutablePath does not exist, starting search..." "INFO"
-        # If not found, proceed with deep search
-        $ProgramPath = Get-ChildItem -LiteralPath $BaseFolder -Filter $ExecutableName -Recurse -File -ErrorAction SilentlyContinue |
-                       Sort-Object LastWriteTime -Descending |
-                       Select-Object -First 1 -ExpandProperty FullName
+        Log-Message "The expected executable $expectedExecutablePath does not exist, starting search..." $LOG_TAG_WARNING
+        $ProgramPath = Get-ChildItem -LiteralPath $BaseFolder -Filter $ExecutableName -Recurse -File -ErrorAction Stop |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1 -ExpandProperty FullName
     } else {
         $ProgramPath = $expectedExecutablePath
-        Log-Message "Executable file found at expected location: $ProgramPath"
+        Log-Message "Executable file found at expected location: $ProgramPath" $LOG_TAG_INFO 
     }
 
-    if (Test-Path -Path $ProgramPath) {
-        Log-Message "Executable file confirmed: $ProgramPath"
+    if (-not $ProgramPath -or -not (Test-Path -Path $ProgramPath)) {
+        Log-Message "Executable file does not exist after search: $ProgramPath" $LOG_TAG_ERROR
+        Write-Host ""
+        continue
     }
     else {
-        Log-Message "Executable file does not exist after search: $ProgramPath"
-        continue
+        Log-Message "Executable file confirmed: $ProgramPath" $LOG_TAG_INFO 
+        Unblock-File -Path $ProgramPath
     }
 
     $ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($ProgramPath)
@@ -142,14 +148,18 @@ foreach ($configFile in $configFiles) {
         ModInterval      = 0
     }
     $programsList += $programInfo
+    Write-Host ""
 }
 
-# Sort the programs list by Priority from lowest to highest
-$programsList = $programsList | Sort-Object -Property Priority
-Write-Host ("`nProgram Execution order:")
-foreach ($item in $programsList)
-{
-     Write-Host ("Priority: " + $item.Priority + "   | Program: " + $item.ProgramName)
+if ($programsList.Count -gt 1) {
+    # Sort the programs list by Priority from lowest to highest. If only one element skip it because it will
+    # returned back as astring not an array
+    $programsList = $programsList | Sort-Object -Property Priority
+    Write-Host ("Program Execution order:")
+    foreach ($item in $programsList)
+    {
+         Write-Host ("Priority: " + $item.Priority + "   | Program: " + $item.ProgramName)
+    }
 }
 
 #Minimize the window
@@ -170,58 +180,18 @@ $SW_MINIMIZE = 6
 $hWnd = [Win32]::GetForegroundWindow()
 $null = [Win32]::ShowWindow($hWnd, $SW_MINIMIZE) # null will prevent true being printed in console when window is minimized
 
-$criticalOperationFile = "C:\WORKING.txt"
-function IsCriticalOperationRunning {
-    if (Test-Path $criticalOperationFile -PathType Leaf) {
-        $result = $true
-    }
-    else {
-        $result = $false
-    }
-    $result
-}
-
-#Safetycheck: delete leftover operation file at startup just in case
-if (IsCriticalOperationRunning){
-    Remove-Item $criticalOperationFile -Force
-}
-
-Write-Host "--------------------------------------------------------------------------------------------" 
-
-Log-Message "About to sleep for 30 seconds to ensure environment is set"
+Write-Host ""
+Log-Message "About to sleep for 30 seconds to ensure environment is set" $LOG_TAG_INFO 
 Start-Sleep -Seconds 30 #Delay before loop
-Log-Message "Resumed after sleeping for 30 seconds"
+Log-Message "Resumed after sleeping for 30 seconds" $LOG_TAG_INFO 
 
 #InfoCheck. This is outside of the loop so it does not get spammed every interval
+Write-Host ""
 foreach ($program in $programsList) {
-    $IsProcessAlreadyRunning = Get-Process -Name $program.ProgramName -ErrorAction SilentlyContinue
-    if ($IsProcessAlreadyRunning) {
-        Log-Message "Process '$($program.ProgramName)' is already running." "INFO"
+    if (IsProcessByPath $program.ProgramPath) {
+        Log-Message "Process '$($program.ProgramName)' is already running." $LOG_TAG_INFO 
     }
 }
-
-# Initialize the tick variable
-[int]$tick = 1
-
-# Create and configure the timer
-$timer = New-Object System.Timers.Timer
-$timer.Interval = 60000
-$timer.AutoReset = $true
-
-# Register an event for the timer's Elapsed event
-Register-ObjectEvent -InputObject $timer -EventName Elapsed -Action {
-    $global:tick++
-} | Out-Null
-
-# Start the timer
-$timer.Start()
-
-# Register a cleanup event for when the script exits
-Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
-    $timer.Stop()
-    $timer.Dispose()
-    Unregister-Event -SourceIdentifier * 
-} | Out-Null
 
 Write-Host ""
 Write-Host "Main Loop Started"
@@ -233,61 +203,55 @@ $CheckInterval = 60
 while ($true) {
     $delay = 0
 
-    if (IsCriticalOperationRunning) {
-        "Execution of critical operation detected. Sleeping for 30 seconds"
-        Start-Sleep -Seconds 30
-        continue
-    } 
-
     for ($i = 0; $i -lt $programsList.Count; $i++) {
 
-        if ($programsList[$i].ModInterval -le 0) {
-            $programsList[$i].ModInterval = $programsList[$i].BaseInterval
-        } else {
-            $programsList[$i].ModInterval -= $tick
-            continue
-        }
+        $programsList[$i].ModInterval--
+        if ($programsList[$i].ModInterval -gt 0) { continue }
+        $programsList[$i].ModInterval = $programsList[$i].BaseInterval
 
         try {
             $name = $programsList[$i].ProgramName
             $args = $programsList[$i].Arguments
             $workingDir = $programsList[$i].WorkingDirectory
             $executable = $programsList[$i].ExecutableName
-            
-            if (-not (IsProcess $name)) {
+            $programPath = $programsList[$i].ProgramPath
 
-                if (IsCriticalOperationRunning) {
-                    break
-                }
-
-                Set-Location $workingDir
+            if (-not (IsProcessByPath $ProgramPath)) {
 
                 if ($executable.EndsWith(".ps1", [StringComparison]::OrdinalIgnoreCase)) {
-                    $command = "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File `"$executable`" -Verb RunAs"
+                    $command = "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File `"$programPath`" -Verb RunAs"
                     if (![string]::IsNullOrEmpty($args)) {
                         $command += " $args"
                     }
                     Invoke-Expression $command
                     # Log-Message "${name} Executed." "INFO" 
                 } else {
-                    Log-Message "${name} is not running" "WARNING"
+                    Log-Message "${name} is not running" $LOG_TAG_WARNING
+                    Log-Message $executable $LOG_TAG_INFO 
 
-                    if (-not [string]::IsNullOrEmpty($args)) {
-                        Start-Process "${executable}" -ArgumentList "${args}" -ErrorAction Stop -Verb RunAs
+                    if (-not [string]::IsNullOrWhiteSpace($args)) {
+                        Start-Process -FilePath $programPath `
+                                      -ArgumentList $args `
+                                      -WorkingDirectory $workingDir `
+                                      -Verb RunAs `
+                                      -ErrorAction Stop
+                    } else {
+                        Start-Process -FilePath $programPath `
+                                      -WorkingDirectory $workingDir `
+                                      -Verb RunAs `
+                                      -ErrorAction Stop
                     }
-                    else {
-                        Start-Process "${executable}" -ErrorAction Stop -Verb RunAs
-                    }
-                    Log-Message "Attempted to start ${name} using Start-Process." "INFO"
+
+                    Log-Message "Attempted to start ${name} using Start-Process." $LOG_TAG_EXECUTION 
 
                     Start-Sleep -Seconds 1
                     $delay = $delay + 1
 
-                    if (IsProcess $name) {
-                        Log-Message "${name} started successfully." "INFO"
+                    if (IsProcessByPath $ProgramPath) {
+                        Log-Message "${name} started successfully." $LOG_TAG_OK
                     }
                     else {
-                        Log-Message "Failed to start ${name}: $_" "ERROR"
+                        Log-Message "Failed to start ${name}: $_" $LOG_TAG_ERROR
                     }
                 }
                 Start-Sleep -Seconds 5
@@ -295,16 +259,16 @@ while ($true) {
             }
         }
         catch {
-            Log-Message "An error occurred while monitoring the program: $_" "ERROR"
+            Log-Message "An error occurred while monitoring the program: $_" $LOG_TAG_ERROR
         }
     }
 
-    $tick = 0
     $timeToSleep = $CheckInterval - $delay
     if ($timeToSleep -lt 5) {
         $timeToSleep = 5
     }
+
     Start-Sleep -Seconds $timeToSleep
 }
 
-Log-Message "The monitoring script has exited." "INFO"
+Log-Message "The monitoring script has exited." $LOG_TAG_INFO 
